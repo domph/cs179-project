@@ -31,5 +31,5 @@
 #endif // STAPLEGL_DEBUG
 
 /* REPLACE THIS INCLUDE DIRECTIVE WITH THE OPENGL FUNCTION LOADER YOU ARE CURRENTLY USING */
-#include "glad.h"
+#include "GL/glew.h"
 /*----------------------------------------------------------------------------------------*/
