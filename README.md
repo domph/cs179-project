@@ -35,4 +35,4 @@ cmake -G "MinGW Makefiles" ..
 mingw32-make
 ```
 
-This should create an executable called `cs179-project.exe` inside the `build` folder. Note that if you have `make` instead of `mingw32-make`, you can just substitute that instead in the last command above.
+This should create an executable called `cs179-project.exe` inside the `build` folder. Note that if you have `make` instead of `mingw32-make`, you can just replace that for `mingw32-make` in the alst command above.
