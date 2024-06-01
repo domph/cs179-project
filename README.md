@@ -1,17 +1,14 @@
 
 ## Compilation Instructions
 
-INCOMPLETE
-To compile this program, `CMake` (>= 3.12), `make`, and a compiler that supports C++20 is required (e.g. `g++` >= 13.2)
-
 ### Windows (64-bit)
 
 #### Tool setup
-To compile on Windows, you need `CMake` and the `MinGW-w64` toolchain (specifically, `g++`, `gcc`, and `make`). If you have all these, you can skip to the `Compile program` section. If not, the simplest way to get all of these is via [WinLibs](https://winlibs.com):
+To compile on Windows, you need `CMake` (>= 3.12) and the `MinGW-w64` toolchain—specifically `g++` (a version that supports C++20), `gcc`, and `make`. If you have all these, you can skip to the `Compile program` section. If not, the simplest way to get all of these is via [WinLibs](https://winlibs.com):
 
 1. Navigate to [https://winlibs.com](https://winlibs.com)
 2. Scroll to the "Downloads" section
-3. Download GCC 14.1.0 (with POSIX threads):
+3. Download GCC 14.1.0 (with POSIX threads); note that this supports C++20:
     - Choose the UCRT runtime
     - Choose Win64 (can choose the version that includes LLVM/Clang/LLD/LLDB; it doesn't matter)
     - There's no difference between the 7-zip or zip archive format
