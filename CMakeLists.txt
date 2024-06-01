@@ -11,7 +11,7 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 add_executable(${PROJECT_NAME} ${SOURCES})
 include_directories(src)
 
-# Add StableGL
+# Add StapleGL
 include_directories(lib/staplegl-0.10.0)
 
 # Add GLM

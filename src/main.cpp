@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
-#include <stablegl/staplegl.hpp>
+#include <staplegl/staplegl.hpp>
 
 //----------------------------------------
 // CONSTANTS
