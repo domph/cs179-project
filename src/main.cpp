@@ -1,5 +1,6 @@
-#include <iostream>
+#include "shaders.h"
 
+#include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -81,8 +82,8 @@ int main() {
 
     // Create shader program
     staplegl::shader_program shader_program("main", {
-        { staplegl::shader_type::vertex, "../shaders/main.vert" },
-        { staplegl::shader_type::fragment, "shaders/main.frag" }
+        { staplegl::shader_type::vertex, VERTEX_SHADER },
+        { staplegl::shader_type::fragment, FRAGMENT_SHADER }
     });
 
     // Main loop

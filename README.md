@@ -1,6 +1,9 @@
 
 ## Compilation Instructions
 
+INCOMPLETE
+To compile this program, `CMake` (>= 3.12), `make`, and a compiler that supports C++20 is required (e.g. `g++` >= 13.2)
+
 ### Windows (64-bit)
 
 #### Tool setup
