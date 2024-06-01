@@ -79,6 +79,12 @@ int main() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glfwSwapInterval(1);    // Enable vsync
 
+    // Create shader program
+    staplegl::shader_program shader_program("main", {
+        { staplegl::shader_type::vertex, "../shaders/main.vert" },
+        { staplegl::shader_type::fragment, "shaders/main.frag" }
+    });
+
     // Main loop
     while(!glfwWindowShouldClose(window)) {
         // Physics
