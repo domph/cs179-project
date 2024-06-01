@@ -10,7 +10,7 @@ set(CMAKE_BUILD_TYPE RELEASE)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-# Include directories
+# Add GLM
 include_directories(lib/glm-1.0.1)
 
 # Add and build freeglut
