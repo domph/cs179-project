@@ -11,7 +11,7 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Include directories
-include_directories(include)
+include_directories(lib/glm-1.0.1)
 
 # Add and build freeglut
 set(FREEGLUT_BUILD_DEMOS OFF)
