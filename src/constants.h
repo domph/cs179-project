@@ -1,6 +1,8 @@
-﻿/* Particle constants */
+﻿#pragma once
 
-#define R  1.0f  // radius
+/* Particle constants */
+
+#define R  (1.0f)  // radius
 #define H  (2  * R)
 #define H2 (H  * H)
 #define H3 (H  * H2)

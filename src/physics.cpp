@@ -1,8 +1,9 @@
-﻿#include <cmath>
-#include <constants.h>
-#include <particle.h>
+﻿#define GLM_ENABLE_EXPERIMENTAL
 
-#include "glm/gtx/norm.hpp"
+#include <cmath>
+#include <glm/gtx/norm.hpp>
+#include "particle.h"
+
 // TODO: consider using "glm/gtx/fast_exponential.hpp"
 
 /* Calculates the density smoothing kernel between positions i and j from
@@ -72,7 +73,7 @@ void kNearestNeighbors(particle_system_t *particles) {
                         } else {
                             max = 0.0f;
                             for (int l = 0; l < MAX_NEIGHBORS; l++) {
-                                float d = glm::length(pi, particles->neighbors[neighbors_idx + l]);
+                                float d = glm::distance(pi, particles->neighbors[neighbors_idx + l].pos);
                                 if (d > max) {
                                     max = d;
                                     maxIdx = l;
