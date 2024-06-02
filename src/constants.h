@@ -24,7 +24,7 @@
 
 /* Physics constants */
 #define DT 0.02f
-#define G  10.0f
+#define G  9.81f
 
 #define POLY6_COEFF (315.0f / (64.0f * PI * P_H9))
 #define SPIKY_COEFF (45.0f  / (PI * P_H6))

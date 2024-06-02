@@ -182,7 +182,7 @@ int main() {
     glUniformMatrix4fv(2, 1, GL_FALSE, &view_proj_matrix[0][0]);
 
     // Initialize physics
-    float xybound = 20.0f;
+    float xybound = 15.0f;
     float zbound  = 40.0f;
     float xystep  = 0.5f;
     int klevels = 4;
@@ -195,7 +195,7 @@ int main() {
             }
         }
     }
-    printf("total: %d\n", total);
+    printf("total particles: %d\n", total);
 
     ParticleSystem *psystem = new ParticleSystem(zbound, xybound, total);
     int id = 0;
