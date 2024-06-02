@@ -7,11 +7,11 @@
 
 float calcWpoly6(glm::vec3 i, glm::vec3 j) {    
     float r2 = glm::distance2(i, j);
-    return (EPS <= r2) && (r2 <= P_H2) ? POLY6_COEFF * std::pow(P_H2 - r2, 3) : 0;
+    return r2 <= P_H2 ? POLY6_COEFF * std::pow(P_H2 - r2, 3) : 0;
 }
 
 glm::vec3 calcWspiky(glm::vec3 i, glm::vec3 j) {
-    float r = glm::distance(i, j); // r = ||i - j||
+    float r = glm::distance(i, j);
 
     if ((EPS <= r) && (r <= P_H)) {
         float coeff = -SPIKY_COEFF * std::pow(P_H - r, 2);
@@ -41,7 +41,7 @@ void kNearestNeighbors(ParticleSystem *psystem) {
         int z = (pi.z + EPS) / P_H;
 
         float dist, max;
-        int max_idx, num_neighbors = 0;
+        int max_idx, num_neighbors = 0.0f;
         glm::vec3 pj;
 
         for (int i = x - 1; i <= x + 1; i++) {
@@ -72,7 +72,7 @@ void kNearestNeighbors(ParticleSystem *psystem) {
                             }
                             if (dist < max && dist < P_H) {
                                 psystem->neighbors[p + max_idx * psystem->num_particles] = neighbor;
-                            }   
+                            }
                         }
                     }
                 }
@@ -97,8 +97,8 @@ void calcLambda(ParticleSystem *psystem) {
         glm::vec3 gradPjCi;  // Temporary store for calculated gradients
 
         // Accumulators for summing over neighbors j
-        float rhoI = 0;
-        float sumGradPkCi2 = 0;
+        float rhoI = 0.0f;
+        float sumGradPkCi2 = 0.0f;
         glm::vec3 sumGradPiCi = glm::vec3(0.0f);
         glm::vec3 pj;
 
@@ -114,7 +114,7 @@ void calcLambda(ParticleSystem *psystem) {
         }
         sumGradPkCi2 += glm::length2(sumGradPiCi);   // eq (9), k = i
 
-        float numerator = rhoI * RHO_0_INV - 1;  // eq (11)
+        float numerator = rhoI * RHO_0_INV - 1.0f;  // eq (11)
         float denominator = sumGradPkCi2 + RELAXATION_EPS;  // eq (11)
 
         psystem->lambda[i] = -numerator / denominator;  // eq (11)
@@ -250,6 +250,15 @@ void update(ParticleSystem *psystem) {
     applyBodyForces(psystem);
     calcPartition(psystem);
     kNearestNeighbors(psystem);
+    for (int j = 0; j < psystem->num_particles; j++) {
+        if (psystem->num_neighbors[j] > 0) {    
+            printf("particle %d has %d neighbors\n", j, psystem->num_neighbors[j]);
+            for (int i = 0; i < psystem->num_neighbors[j]; i++) {
+                printf("neighbor %d: %d\n", i, psystem->neighbors[i*psystem->num_particles + j]);
+            }
+            printf("\n");
+        }
+    }
 
     for (int i = 0; i < SOLVER_ITERATIONS; i++) {
         calcLambda(psystem);
@@ -259,8 +268,8 @@ void update(ParticleSystem *psystem) {
     }
 
     calcVel(psystem);
-    calcVorticityViscosity(psystem);
-    applyVorticityCorrection(psystem);
+    // calcVorticityViscosity(psystem);
+    // applyVorticityCorrection(psystem);
     updateVel(psystem);
 
     savePrevPos(psystem);

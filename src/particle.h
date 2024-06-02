@@ -62,6 +62,20 @@ struct Box {
             }
         }
     }
+
+    void print_members() {
+        for (int x = 0; x < x_partitions; x++) {
+            for (int y = 0; y < y_partitions; y++) {
+                for (int z = 0; z < z_partitions; z++) {
+                    printf("partition [%d][%d][%d] contains ", x, y, z);
+                    for (int i : partitions[x][y][z]) {
+                        printf("%d ", i);
+                    }
+                    printf("\n");
+                }
+            }
+        }
+    }
 };
 
 struct ParticleSystem {

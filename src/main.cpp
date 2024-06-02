@@ -182,14 +182,17 @@ int main() {
     glUniformMatrix4fv(2, 1, GL_FALSE, &view_proj_matrix[0][0]);
 
     // Initialize physics
-    float xybound = 20.0f;
+    float xybound = 10.0f;
     float zbound  = 40.0f;
     float xystep  = 2.0f;
+    int klevels = 4;
 
     int total = 0;
     for (float i = 0; i < xybound; i += xystep) {
         for (float j = 0; j < xybound; j += xystep) {
-            total++;
+            for (int k = 0; k < i/klevels; k++) {
+                total++;
+            }
         }
     }
     printf("total: %d\n", total);
@@ -198,7 +201,9 @@ int main() {
     int id = 0;
     for (float i = 0; i < xybound; i += xystep) {
         for (float j = 0; j < xybound; j += xystep) {
-            psystem->init_particle(id++, glm::vec3(i, j, 10.0f));
+            for (int k = 0; k < i/klevels; k++) {
+                psystem->init_particle(id++, glm::vec3(i, j, k*xystep));
+            }
         }
     }
 
