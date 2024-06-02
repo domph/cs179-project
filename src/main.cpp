@@ -182,9 +182,9 @@ int main() {
     glUniformMatrix4fv(2, 1, GL_FALSE, &view_proj_matrix[0][0]);
 
     // Initialize physics
-    float xybound = 10.0f;
+    float xybound = 20.0f;
     float zbound  = 40.0f;
-    float xystep  = 2.0f;
+    float xystep  = 0.5f;
     int klevels = 4;
 
     int total = 0;

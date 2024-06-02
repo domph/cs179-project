@@ -47,11 +47,12 @@ void kNearestNeighbors(ParticleSystem *psystem) {
         for (int i = x - 1; i <= x + 1; i++) {
             for (int j = y - 1; j <= y + 1; j++) {
                 for (int k = z - 1; k <= z + 1; k++) {
-                    if (x >= box->x_partitions || y >= box->y_partitions ||
-                        z >= box->z_partitions || x < 0 || y < 0 || z < 0) continue;
+                    if (i>= box->x_partitions || j >= box->y_partitions ||
+                        k >= box->z_partitions || i < 0 || j < 0 || k < 0) continue;
                     
-                    for (int neighbor: box->partitions[x][y][z]) {
-                        if (neighbor == p) continue;  // should not happen
+                    for (int neighbor: box->partitions[i][j][k]) {
+
+                        if (neighbor == p) continue;
                         pj = psystem->pos[neighbor];
 
                         dist = glm::distance(pi, pj);
@@ -62,7 +63,7 @@ void kNearestNeighbors(ParticleSystem *psystem) {
                             }
                         } else {
                             max = 0.0f;
-                            for (int l = 0; l < MAX_NEIGHBORS; l++) {
+                            for (int l = 0; l < num_neighbors; l++) {
                                 int neighbor_idx = psystem->neighbors[p + l * psystem->num_particles];
                                 float d = glm::distance(pi, psystem->pos[neighbor_idx]);
                                 if (d > max) {
@@ -250,15 +251,6 @@ void update(ParticleSystem *psystem) {
     applyBodyForces(psystem);
     calcPartition(psystem);
     kNearestNeighbors(psystem);
-    for (int j = 0; j < psystem->num_particles; j++) {
-        if (psystem->num_neighbors[j] > 0) {    
-            printf("particle %d has %d neighbors\n", j, psystem->num_neighbors[j]);
-            for (int i = 0; i < psystem->num_neighbors[j]; i++) {
-                printf("neighbor %d: %d\n", i, psystem->neighbors[i*psystem->num_particles + j]);
-            }
-            printf("\n");
-        }
-    }
 
     for (int i = 0; i < SOLVER_ITERATIONS; i++) {
         calcLambda(psystem);
@@ -268,8 +260,8 @@ void update(ParticleSystem *psystem) {
     }
 
     calcVel(psystem);
-    // calcVorticityViscosity(psystem);
-    // applyVorticityCorrection(psystem);
+    calcVorticityViscosity(psystem);
+    applyVorticityCorrection(psystem);
     updateVel(psystem);
 
     savePrevPos(psystem);
