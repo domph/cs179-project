@@ -12,7 +12,11 @@ set(CMAKE_BUILD_TYPE RelWithDebInfo)
 # file(SOURCES "src/particle_simulator.cpp")
 #file(GLOB_RECURSE SOURCES "src/*.cpp")
 # add_executable(${PROJECT_NAME} ${SOURCES})
-add_executable(${PROJECT_NAME} "src/main.cpp" "src/particle_simulator.cpp" "src/physics.cpp")
+add_executable(${PROJECT_NAME}
+    "src/main.cpp"
+    "src/particle_simulator.cpp"
+    "src/physics.cpp"
+    "src/camera.cpp")
 
 # Add StapleGL
 # include_directories(lib/staplegl-0.10.0)

@@ -1,6 +1,6 @@
 #include "particle_simulator.h"
 
-// Struct used internally for data size calculations
+// Used internally for data size calculations
 struct ParticleData {
     float pos[3];
     float vel[3];
@@ -17,18 +17,20 @@ void ParticleSimulator::create_vbo(size_t size) {
     const size_t buffer_size = size * sizeof(ParticleData);
     glBufferStorage(GL_ARRAY_BUFFER, buffer_size, 0,
         GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
-    data = (float*)glMapBufferRange(GL_ARRAY_BUFFER, 0, buffer_size,
+    buffer = (float*)glMapBufferRange(GL_ARRAY_BUFFER, 0, buffer_size,
         GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
 
-    if (data == nullptr) {
+    if (buffer == nullptr) {
         std::cerr << "Failed to map buffer" << std::endl;
         throw std::runtime_error("Failed to map buffer");
     }
 
     // Set attributes
+    // Position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ParticleData), (void*)0);
     glEnableVertexAttribArray(0);
 
+    // Velocity
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ParticleData), (void*)(offsetof(ParticleData, vel)));
     glEnableVertexAttribArray(1);
 
@@ -38,61 +40,55 @@ void ParticleSimulator::create_vbo(size_t size) {
 }
 
 // Caller is responsible for checking that vao/vbo exist
-void ParticleSimulator::delete_vbo() {
+void ParticleSimulator::delete_vbo(bool check_gl_errors) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo); 
-    if (glUnmapBuffer(GL_ARRAY_BUFFER) == GL_FALSE) {
+    if (glUnmapBuffer(GL_ARRAY_BUFFER) == GL_FALSE && check_gl_errors) {
         std::cerr << "Failed to unmap buffer" << std::endl;
         throw std::runtime_error("Failed to unmap buffer");
     }
     glDeleteBuffers(1, &vbo);
     glDeleteVertexArrays(1, &vao);
-    data = nullptr;
 }
 
-
-ParticleSimulator::ParticleSimulator() {
-    num_particles = 0;
-    data = nullptr;
-    vao = 0;
-    vbo = 0;
-    sync_obj = 0;
+ParticleSimulator::~ParticleSimulator() {
+    // The only time we don't delete the buffer/delete the sync object is when no render()
+    // call has ever been made, which we can check for by simply seeing if buffer is a nullptr.
+    if (buffer) {
+        delete_vbo(false);
+        glDeleteSync(sync_obj);
+    }
 }
 
-// ParticleSimulator::~ParticleSimulator() {
-//     if (data != nullptr) {
-//         delete_vbo();
-//     }
-//     if (sync_obj) {
-//         glDeleteSync(sync_obj);
-//     }
-// }
+void ParticleSimulator::check_size(size_t new_size) {
+    if (new_size != num_particles) {
+        if (buffer) {
+            delete_vbo();
+        }
+        create_vbo(new_size);
+        num_particles = new_size;
+    }
+}
 
 void ParticleSimulator::render(ParticleSystem *system) {
     // Wait for GPU to finish using the buffer
-    if (sync_obj != 0) {
+    if (sync_obj) {
         GLenum waitReturn = GL_UNSIGNALED;
         while (waitReturn != GL_ALREADY_SIGNALED && waitReturn != GL_CONDITION_SATISFIED) {
             waitReturn = glClientWaitSync(sync_obj, GL_SYNC_FLUSH_COMMANDS_BIT, 1);
         }
     }
 
-    // Resize if necessary
-    if (system->num_particles != num_particles) {
-        if (data != nullptr) {
-            delete_vbo();
-        }
-        num_particles = system->num_particles;
-        create_vbo(num_particles);
-    }
+    // Resize buffer if necessary
+    check_size(system->num_particles);
 
     // Update data
     for (size_t i = 0; i < num_particles; ++i) {
-        data[i * 6 + 0] = system->pos[i].x;
-        data[i * 6 + 1] = system->pos[i].y;
-        data[i * 6 + 2] = system->pos[i].z;
-        data[i * 6 + 3] = system->vel[i].x;
-        data[i * 6 + 4] = system->vel[i].y;
-        data[i * 6 + 5] = system->vel[i].z;
+        buffer[i * 6 + 0] = system->pos[i].x;
+        buffer[i * 6 + 1] = system->pos[i].y;
+        buffer[i * 6 + 2] = system->pos[i].z;
+        buffer[i * 6 + 3] = system->vel[i].x;
+        buffer[i * 6 + 4] = system->vel[i].y;
+        buffer[i * 6 + 5] = system->vel[i].z;
     }
 
     // Draw
@@ -105,6 +101,4 @@ void ParticleSimulator::render(ParticleSystem *system) {
         glDeleteSync(sync_obj);
     }
     sync_obj = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-
-
 }

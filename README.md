@@ -25,6 +25,8 @@ gcc --version
 mingw32-make --version
 ```
 
+If they don't it's possible the `PATH` environment variable hasn't been updated correctly (you can check by running `echo %PATH%` and seeing if the `mingw64\bin` folder shows up) or hasn't been registered by the program (may need to restart the terminal/VSCode).
+
 #### Compile program
 Once the above tools are installed, you can compile this program on Windows as follows. In the root folder directory, run the following commands in command prompt:
 
