@@ -54,8 +54,10 @@ void kNearestNeighbors(ParticleSystem *psystem) {
                         pj = neighbor->pos;
 
                         dist = glm::distance(pi, pj);
-                        if (particle->neighbors.size() < MAX_NEIGHBORS && dist < P_H) {
-                            particle->neighbors.push_back(neighbor);
+                        if (particle->neighbors.size() < MAX_NEIGHBORS) {
+                            if (dist < P_H) {
+                                particle->neighbors.push_back(neighbor);
+                            }
                         } else {
                             max = 0.0f;
                             for (int l = 0; l < particle->neighbors.size(); l++) {
@@ -160,6 +162,7 @@ void savePrevPos(ParticleSystem *psystem) {
 void calcVel(ParticleSystem *psystem) {
     for (Particle *particle : psystem->particles) {
         particle->vel = (particle->pos - particle->prevpos) / DT;
+        particle->nextvel = particle->vel;
     }
 }
 
@@ -219,7 +222,7 @@ void calcVorticityViscosity(ParticleSystem *psystem) {
                 wi += glm::cross(vij, calcWspiky(pi, pj));  // eq (15)
                 vXSPH += vij * calcWpoly6(pi, pj);  // eq (17)
             }
-            particle->nextvel = vi + XSPH_C * vXSPH; // eq (17)
+            particle->nextvel += XSPH_C * vXSPH; // eq (17)
             particle->vorticity = wi;
         }
     }
@@ -253,15 +256,15 @@ void update(ParticleSystem *psystem) {
     kNearestNeighbors(psystem);
 
     for (int i = 0; i < SOLVER_ITERATIONS; i++) {
-        calcLambda(psystem);
-        calcDeltaPos(psystem);
-        updatePos(psystem);
+        // calcLambda(psystem);
+        // calcDeltaPos(psystem);
+        // updatePos(psystem);
         applyCollisionResponse(psystem);
     }
 
     calcVel(psystem);
-    calcVorticityViscosity(psystem);
-    applyVorticityCorrection(psystem);
+    // calcVorticityViscosity(psystem);
+    // applyVorticityCorrection(psystem);
     updateVel(psystem);
 
     savePrevPos(psystem);

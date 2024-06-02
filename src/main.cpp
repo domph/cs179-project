@@ -203,7 +203,7 @@ int main() {
         // Physics
         update(psystem);
         std::cout << "particle pos: " << test->pos.x << ", " << test->pos.y << ", " << test->pos.z << std::endl;
-        //std::cout << "particle vel: " << test->vel.x << ", " << test->vel.y << ", " << test->vel.z << std::endl;
+        // std::cout << "particle vel: " << test->vel.x << ", " << test->vel.y << ", " << test->vel.z << std::endl;
 
 
         
