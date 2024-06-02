@@ -59,17 +59,17 @@ void kNearestNeighbors(ParticleSystem *psystem) {
                                 particle->neighbors.push_back(neighbor);
                             }
                         } else {
-                            // max = 0.0f;
-                            // for (int l = 0; l < particle->neighbors.size(); l++) {
-                            //     float d = glm::distance(pi, particle->neighbors[l]->pos);
-                            //     if (d > max) {
-                            //         max = d;
-                            //         max_idx = l;
-                            //     }
-                            // }
-                            // if (dist < max && dist < P_H) {
-                            //     particle->neighbors[max_idx] = neighbor;
-                            // }
+                            max = 0.0f;
+                            for (int l = 0; l < particle->neighbors.size(); l++) {
+                                float d = glm::distance(pi, particle->neighbors[l]->pos);
+                                if (d > max) {
+                                    max = d;
+                                    max_idx = l;
+                                }
+                            }
+                            if (dist < max && dist < P_H) {
+                                particle->neighbors[max_idx] = neighbor;
+                            }
                         }
                     }
                 }
