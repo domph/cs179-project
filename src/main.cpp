@@ -177,22 +177,30 @@ int main() {
     std::vector<Proxy> particles;
     particles.push_back({ glm::vec3(5.0f, 5.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f) });
 
-    glm::mat4 view_matrix = glm::lookAt(glm::vec3(0.0f, -60.0f, 40.0f), glm::vec3(10.0f, 10.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 view_matrix = glm::lookAt(glm::vec3(0.0f, -20.0f, 10.0f), glm::vec3(10.0f, 10.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 view_proj_matrix = g_proj_matrix * view_matrix;
     glUniformMatrix4fv(2, 1, GL_FALSE, &view_proj_matrix[0][0]);
 
     // Initialize physics
-    float xybound = 8.0f;
-    float zbound  = 32.0f;
-    ParticleSystem *psystem = new ParticleSystem(zbound, xybound);
-    for (float i = 0; i < xybound; i += 0.5) {
-        for (float j = 0; j < xybound; j += 0.5) {
-            for (float k = 0; k < 4; k++) {
-                psystem->add_particle(false, glm::vec3(i, j, zbound/2 + k));
-            }
+    float xybound = 20.0f;
+    float zbound  = 40.0f;
+    float xystep  = 2.0f;
+
+    int total = 0;
+    for (float i = 0; i < xybound; i += xystep) {
+        for (float j = 0; j < xybound; j += xystep) {
+            total++;
         }
     }
-    Particle *test = psystem->particles[0];
+    printf("total: %d\n", total);
+
+    ParticleSystem *psystem = new ParticleSystem(zbound, xybound, total);
+    int id = 0;
+    for (float i = 0; i < xybound; i += xystep) {
+        for (float j = 0; j < xybound; j += xystep) {
+            psystem->init_particle(id++, glm::vec3(i, j, 10.0f));
+        }
+    }
 
     // Main loop
     while(!glfwWindowShouldClose(window)) {
@@ -202,8 +210,8 @@ int main() {
 
         // Physics
         update(psystem);
-        std::cout << "particle pos: " << test->pos.x << ", " << test->pos.y << ", " << test->pos.z << std::endl;
-        // std::cout << "particle vel: " << test->vel.x << ", " << test->vel.y << ", " << test->vel.z << std::endl;
+        // std::cout << "particle pos: " << psystem->pos[0].x << ", " << psystem->pos[0].y << ", " << psystem->pos[0].z << std::endl;
+        // std::cout << "particle vel: " << psystem->pos[0].x << ", " << psystem->pos[0].y << ", " << psystem->pos[0].z << std::endl;
 
 
         

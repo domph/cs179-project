@@ -9,7 +9,7 @@
 #define P_H6 (P_H3 * P_H3)
 #define P_H9 (P_H3 * P_H6)
 
-#define MAX_NEIGHBORS 8
+#define MAX_NEIGHBORS 16
 
 
 /* Math constants */
@@ -24,16 +24,16 @@
 
 /* Physics constants */
 #define DT 0.02f
-#define G  9.81f
+#define G  10.0f
 
 #define POLY6_COEFF (315.0f / (64.0f * PI * P_H9))
 #define SPIKY_COEFF (45.0f  / (PI * P_H6))
 
-#define RHO_0 1000.0f
+#define RHO_0 1.0f
 #define RHO_0_INV (1 / RHO_0)
 #define RELAXATION_EPS 5.0f
 
-#define DELTA_Q (0.2f * P_H)
+#define DELTA_Q (0.1f * P_H)
 #define SCORR_K 0.1f
 #define SCORR_N(x) ((x) * (x) * (x) * (x))  // expands to x^n with n=4
 

@@ -76,25 +76,23 @@ void ParticleSimulator::render(ParticleSystem *system) {
         }
     }
 
-    auto &particles = system->particles;
-
     // Resize if necessary
-    if (particles.size() != num_particles) {
+    if (system->num_particles != num_particles) {
         if (data != nullptr) {
             delete_vbo();
         }
-        num_particles = particles.size();
+        num_particles = system->num_particles;
         create_vbo(num_particles);
     }
 
     // Update data
     for (size_t i = 0; i < num_particles; ++i) {
-        data[i * 6 + 0] = particles[i]->pos.x;
-        data[i * 6 + 1] = particles[i]->pos.y;
-        data[i * 6 + 2] = particles[i]->pos.z;
-        data[i * 6 + 3] = particles[i]->vel.x;
-        data[i * 6 + 4] = particles[i]->vel.y;
-        data[i * 6 + 5] = particles[i]->vel.z;
+        data[i * 6 + 0] = system->pos[i].x;
+        data[i * 6 + 1] = system->pos[i].y;
+        data[i * 6 + 2] = system->pos[i].z;
+        data[i * 6 + 3] = system->vel[i].x;
+        data[i * 6 + 4] = system->vel[i].y;
+        data[i * 6 + 5] = system->vel[i].z;
     }
 
     // Draw
