@@ -8,28 +8,14 @@ set(CMAKE_BUILD_TYPE RelWithDebInfo)
 #set(CMAKE_BUILD_TYPE RELEASE)
 
 # Source files
-# file(SOURCES "src/main.cpp")
-# file(SOURCES "src/particle_simulator.cpp")
-#file(GLOB_RECURSE SOURCES "src/*.cpp")
-# add_executable(${PROJECT_NAME} ${SOURCES})
 add_executable(${PROJECT_NAME}
     "src/main.cpp"
     "src/particle_simulator.cpp"
     "src/physics.cpp"
     "src/camera.cpp")
 
-# Add StapleGL
-# include_directories(lib/staplegl-0.10.0)
-
 # Add GLM
 include_directories(lib/glm-1.0.1)
-
-# Add and build freeglut
-# set(FREEGLUT_BUILD_DEMOS OFF)
-# set(FREEGLUT_BUILD_SHARED_LIBS OFF)
-# add_subdirectory(lib/freeglut-3.4.0 EXCLUDE_FROM_ALL)
-# include_directories(lib/freeglut-3.4.0/include)
-# target_link_libraries(${PROJECT_NAME} freeglut_static)
 
 # Add and build GLEW
 set(BUILD_UTILS off)
