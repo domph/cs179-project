@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-constexpr std::string_view VERTEX_SHADER = R"(
+const std::string VERTEX_SHADER = R"(
 #version 460 core
 
 layout (location = 0) in vec3 position;
@@ -22,13 +22,13 @@ void main() {
 }
 )";
 
-constexpr std::string_view FRAGMENT_SHADER = R"(
+const std::string FRAGMENT_SHADER = R"(
 #version 460 core
 
 in vec3 vertex_color;
-out vec4 FragColor;  
+out vec4 color;  
 
 void main() {
-    FragColor = vec4(vertex_color, 1.0);
+    color = vec4(vertex_color, 1.0);
 }
 )";

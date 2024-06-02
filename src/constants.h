@@ -2,12 +2,12 @@
 
 /* Particle constants */
 
-#define R  (1.0f)  // radius
-#define H  (2  * R)
-#define H2 (H  * H)
-#define H3 (H  * H2)
-#define H6 (H3 * H3)
-#define H9 (H3 * H6)
+#define P_R  (1.0f)  // radius
+#define P_H  (2  * P_R)
+#define P_H2 (P_H  * P_H)
+#define P_H3 (P_H  * P_H2)
+#define P_H6 (P_H3 * P_H3)
+#define P_H9 (P_H3 * P_H6)
 
 #define MAX_NEIGHBORS 64
 
@@ -26,14 +26,14 @@
 #define DT 0.02f
 #define G  9.81f
 
-#define POLY6_COEFF (315.0f / (64.0f * PI * H9))
-#define SPIKY_COEFF (45.0f  / (PI * H6))
+#define POLY6_COEFF (315.0f / (64.0f * PI * P_H9))
+#define SPIKY_COEFF (45.0f  / (PI * P_H6))
 
 #define RHO_0 1000.0f
 #define RHO_0_INV (1 / RHO_0)
 #define RELAXATION_EPS 5.0f
 
-#define DELTA_Q (0.2f * H)
+#define DELTA_Q (0.2f * P_H)
 #define SCORR_K 0.1f
 #define SCORR_N(x) ((x) * (x) * (x) * (x))  // expands to x^n with n=4
 

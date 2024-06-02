@@ -4,14 +4,18 @@ project(cs179-project)
 # Specify the C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_BUILD_TYPE RELEASE)
+set(CMAKE_BUILD_TYPE RelWithDebInfo)
+#set(CMAKE_BUILD_TYPE RELEASE)
 
 # Source files
-file(GLOB_RECURSE SOURCES "src/*.cpp")
-add_executable(${PROJECT_NAME} ${SOURCES})
+# file(SOURCES "src/main.cpp")
+# file(SOURCES "src/particle_simulator.cpp")
+#file(GLOB_RECURSE SOURCES "src/*.cpp")
+# add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} "src/main.cpp" "src/particle_simulator.cpp" "src/physics.cpp")
 
 # Add StapleGL
-include_directories(lib/staplegl-0.10.0)
+# include_directories(lib/staplegl-0.10.0)
 
 # Add GLM
 include_directories(lib/glm-1.0.1)

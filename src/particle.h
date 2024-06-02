@@ -1,10 +1,11 @@
 ﻿#pragma once
 
 #include <glm/glm.hpp>
+#include <iostream>
 #include <vector>
 #include "constants.h"
 
-struct particle_t {
+struct Particle {
     int id;
     bool fixed;
     
@@ -16,14 +17,13 @@ struct particle_t {
     glm::vec3 nextvel;
 
     glm::vec3 vorticity;
-
     float lambda;
 
-    particle_t (bool fixed = false): fixed(fixed) {
-        id = 0;
-        pos = glm::vec3(0.0f);
+    std::vector<Particle *> neighbors;
+
+    Particle (int id, bool fixed, glm::vec3 pos): id(id), fixed(fixed), pos(pos) {
         deltapos = glm::vec3(0.0f);
-        prevpos = glm::vec3(0.0f);
+        prevpos = pos;
         vel = glm::vec3(0.0f);
         nextvel = glm::vec3(0.0f);
         vorticity = glm::vec3(0.0f);
@@ -33,21 +33,26 @@ struct particle_t {
 
 
 /* Represents a box with a w x w square base and height h */
-struct box_t {
+struct Box {
     int h;
     int w;
-    std::vector<std::vector<std::vector<std::vector<particle_t *>>>> partitions;
+    std::vector<std::vector<std::vector<std::vector<Particle *>>>> partitions;
 
     int x_partitions;
     int y_partitions;
     int z_partitions;
     int total_partitions;
 
-    box_t(int w, int h) : w(w), h(h) {
-        x_partitions = (float)w / H + 1;
-        y_partitions = (float)w / H + 1;
-        z_partitions = (float)h / H + 1;
+    Box(int h, int w) : h(h), w(w) {
+        x_partitions = (float)w / P_H + 2;
+        y_partitions = (float)w / P_H + 2;
+        z_partitions = (float)h / P_H + 2;
         total_partitions = x_partitions * y_partitions * z_partitions;
+
+        printf("x partitions: %d\n", x_partitions);
+        printf("y partitions: %d\n", y_partitions);
+        printf("z partitions: %d\n", z_partitions);
+        printf("total partitions: %d\n", total_partitions);
 
         partitions.resize(x_partitions);
         for (int x = 0; x < x_partitions; x++) {
@@ -58,22 +63,26 @@ struct box_t {
         }
     }
 
-    void add_particle(particle_t *particle) {
-        int x = (particle->pos.x + EPS) / H;
-        int y = (particle->pos.y + EPS) / H;
-        int z = (particle->pos.z + EPS) / H;
+    void add_particle(Particle *particle) {
+        int x = (particle->pos.x + EPS + 1) / P_H;
+        int y = (particle->pos.y + EPS + 1) / P_H;
+        int z = (particle->pos.z + EPS + 1) / P_H;
 
         if (x >= 0 && x < partitions.size() &&
             y >= 0 && y < partitions[x].size() &&
             z >= 0 && z < partitions[x][y].size()) {
             partitions[x][y][z].push_back(particle);
+        } else {
+            printf("Box error: particle out of bounds!\n");
+            printf("loc:   x: %d, y: %d, z: %d\n", x, y, z);
+            printf("bound: x: %d, y: %d, z: %d\n", partitions.size(), partitions[x].size(), partitions[x][y].size());
         }
     }
 
     void clear_partitions() {
-        for (auto& x_layer : partitions) {
-            for (auto& y_layer : x_layer) {
-                for (auto& z_layer : y_layer) {
+        for (auto x_layer : partitions) {
+            for (auto y_layer : x_layer) {
+                for (auto z_layer : y_layer) {
                     z_layer.clear();
                 }
             }
@@ -82,12 +91,16 @@ struct box_t {
 
 };
 
-struct particle_system_t {
-    particle_t *particles;
-    int         num_particles;
+struct ParticleSystem {
+    std::vector<Particle *> particles;
+    Box *box;
 
-    particle_t *neighbors;
-    int        *num_neighbors;
+    ParticleSystem(int h, int w) {
+        box = new Box(h, w);
+    }
 
-    box_t      *box;
+    void add_particle(bool fixed, glm::vec3 pos) {
+        Particle *particle = new Particle(particles.size(), fixed, pos);
+        particles.push_back(particle);
+    }
 };
