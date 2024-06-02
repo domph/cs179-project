@@ -28,6 +28,8 @@ struct Particle {
         nextvel = glm::vec3(0.0f);
         vorticity = glm::vec3(0.0f);
         lambda = 0.0f;
+
+        neighbors.reserve(MAX_NEIGHBORS);
     }
 };
 
@@ -44,9 +46,9 @@ struct Box {
     int total_partitions;
 
     Box(int h, int w) : h(h), w(w) {
-        x_partitions = (float)w / P_H + 2;
-        y_partitions = (float)w / P_H + 2;
-        z_partitions = (float)h / P_H + 2;
+        x_partitions = (float)w / P_H + 1;
+        y_partitions = (float)w / P_H + 1;
+        z_partitions = (float)h / P_H + 1;
         total_partitions = x_partitions * y_partitions * z_partitions;
 
         printf("x partitions: %d\n", x_partitions);
@@ -64,9 +66,9 @@ struct Box {
     }
 
     void add_particle(Particle *particle) {
-        int x = (particle->pos.x + EPS + 1) / P_H;
-        int y = (particle->pos.y + EPS + 1) / P_H;
-        int z = (particle->pos.z + EPS + 1) / P_H;
+        int x = (particle->pos.x + EPS) / P_H;
+        int y = (particle->pos.y + EPS) / P_H;
+        int z = (particle->pos.z + EPS) / P_H;
 
         if (x >= 0 && x < partitions.size() &&
             y >= 0 && y < partitions[x].size() &&

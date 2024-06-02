@@ -9,7 +9,7 @@
 #define P_H6 (P_H3 * P_H3)
 #define P_H9 (P_H3 * P_H6)
 
-#define MAX_NEIGHBORS 64
+#define MAX_NEIGHBORS 8
 
 
 /* Math constants */

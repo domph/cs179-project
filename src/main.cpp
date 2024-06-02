@@ -182,13 +182,13 @@ int main() {
     glUniformMatrix4fv(2, 1, GL_FALSE, &view_proj_matrix[0][0]);
 
     // Initialize physics
-    float xybound = 20.0f;
-    float zbound  = 40.0f;
+    float xybound = 8.0f;
+    float zbound  = 32.0f;
     ParticleSystem *psystem = new ParticleSystem(zbound, xybound);
-    for (float i = 0.0f; i < xybound; i+=2) {
-        for (float j = 0.0f; j < xybound; j++) {
-            for (float k = 10.0f; k < 20; k++) {
-                psystem->add_particle(false, glm::vec3(i, j, k));
+    for (float i = 0; i < xybound; i += 0.5) {
+        for (float j = 0; j < xybound; j += 0.5) {
+            for (float k = 0; k < 4; k++) {
+                psystem->add_particle(false, glm::vec3(i, j, zbound/2 + k));
             }
         }
     }
