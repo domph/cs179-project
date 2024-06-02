@@ -69,7 +69,7 @@ void kNearestNeighbors(ParticleSystem *psystem) {
                             }
                             if (dist < max && dist < P_H) {
                                 particle->neighbors[max_idx] = neighbor;
-                            }
+                            }   
                         }
                     }
                 }
