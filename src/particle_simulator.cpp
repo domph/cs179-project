@@ -40,9 +40,11 @@ void ParticleSimulator::create_vbo(size_t size) {
 }
 
 // Caller is responsible for checking that vao/vbo exist
-void ParticleSimulator::delete_vbo(bool check_gl_errors) {
+void ParticleSimulator::delete_vbo() {
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, vbo); 
-    if (glUnmapBuffer(GL_ARRAY_BUFFER) == GL_FALSE && check_gl_errors) {
+    if (glUnmapBuffer(GL_ARRAY_BUFFER) == GL_FALSE) {
         std::cerr << "Failed to unmap buffer" << std::endl;
         throw std::runtime_error("Failed to unmap buffer");
     }
@@ -54,7 +56,7 @@ ParticleSimulator::~ParticleSimulator() {
     // The only time we don't delete the buffer/delete the sync object is when no render()
     // call has ever been made, which we can check for by simply seeing if buffer is a nullptr.
     if (buffer) {
-        delete_vbo(false);
+        delete_vbo();
         glDeleteSync(sync_obj);
     }
 }
@@ -69,7 +71,7 @@ void ParticleSimulator::check_size(size_t new_size) {
     }
 }
 
-void ParticleSimulator::render(ParticleSystem *system) {
+GLuint ParticleSimulator::render(ParticleSystem *system) {
     // Wait for GPU to finish using the buffer
     if (sync_obj) {
         GLenum waitReturn = GL_UNSIGNALED;
@@ -78,7 +80,10 @@ void ParticleSimulator::render(ParticleSystem *system) {
         }
     }
 
-    // Resize buffer if necessary
+    // Resize texture/RBO if necessary
+    buffer_manager.rescale(viewport_width, viewport_height);
+
+    // Resize VBO if necessary
     check_size(system->num_particles);
 
     // Update data
@@ -92,13 +97,17 @@ void ParticleSimulator::render(ParticleSystem *system) {
     }
 
     // Draw
+    buffer_manager.bind();
     glBindVertexArray(vao);
     glDrawArrays(GL_POINTS, 0, num_particles);
     glBindVertexArray(0);
+    buffer_manager.unbind();
 
     // Create sync object
     if (sync_obj) {
         glDeleteSync(sync_obj);
     }
     sync_obj = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+    return buffer_manager.get_texture_id();
 }

@@ -12,6 +12,7 @@ set(SRC_LIST
     "src/particle_simulator.cpp"
     "src/physics.cpp"
     "src/camera.cpp"
+    "src/buffer_manager.cpp"
 )
 
 set(IMGUI_SRC_LIST

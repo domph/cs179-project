@@ -4,6 +4,7 @@
 #include "particle_simulator.h"
 #include "timer.h"
 #include "camera.h"
+#include "fonts.h"
 
 #include <iostream>
 #include <algorithm>
@@ -12,6 +13,10 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 //----------------------------------------
 // CONSTANTS
@@ -24,16 +29,116 @@ constexpr int START_HEIGHT = 1200;
 // GLOBALS
 //----------------------------------------
 
-// This is global since the framebuffer_size_callback needs to update it
+ParticleSystem *g_psystem;
+ParticleSimulator *g_particle_simulator;
 glm::mat4 g_proj_matrix;
 
 bool g_first_person = false;
 bool g_disable_physics = false;
-Camera camera(glm::vec3(13.432151, -18.409569, 15.710428), glm::vec3(0, 0, 1), 245.800140, -21.050030);
+Camera g_camera(glm::vec3(13.432151, -18.409569, 15.710428), glm::vec3(0, 0, 1), 245.800140, -21.050030);
 
 //----------------------------------------
 // FUNCTIONS
 //----------------------------------------
+
+// https://github.com/glfw/glfw/issues/1699#issuecomment-723692566
+bool glfw_get_window_monitor(GLFWmonitor **monitor, GLFWwindow *window) {
+    bool success = false;
+
+    int window_rectangle[4] = {0};
+    glfwGetWindowPos(window, &window_rectangle[0], &window_rectangle[1]);
+    glfwGetWindowSize(window, &window_rectangle[2], &window_rectangle[3]);
+
+    int monitors_size = 0;
+    GLFWmonitor **monitors = glfwGetMonitors(&monitors_size);
+
+    GLFWmonitor *closest_monitor = NULL;
+    int max_overlap_area = 0;
+
+    for (int i = 0; i < monitors_size; ++i) {
+        int monitor_position[2] = {0};
+        glfwGetMonitorPos(monitors[i], &monitor_position[0], &monitor_position[1]);
+
+        const GLFWvidmode *monitor_video_mode = glfwGetVideoMode(monitors[i]);
+
+        int monitor_rectangle[4] = {
+            monitor_position[0],
+            monitor_position[1],
+            monitor_video_mode->width,
+            monitor_video_mode->height,
+        };
+
+        if (
+            !(
+                ((window_rectangle[0] + window_rectangle[2]) < monitor_rectangle[0]) ||
+                (window_rectangle[0] > (monitor_rectangle[0] + monitor_rectangle[2])) ||
+                ((window_rectangle[1] + window_rectangle[3]) < monitor_rectangle[1]) ||
+                (window_rectangle[1] > (monitor_rectangle[1] + monitor_rectangle[3]))
+            )
+        ) {
+            int intersection_rectangle[4] = {0};
+
+            // x, width
+            if (window_rectangle[0] < monitor_rectangle[0]) {
+                intersection_rectangle[0] = monitor_rectangle[0];
+
+                if ((window_rectangle[0] + window_rectangle[2]) < (monitor_rectangle[0] + monitor_rectangle[2])) {
+                    intersection_rectangle[2] = (window_rectangle[0] + window_rectangle[2]) - intersection_rectangle[0];
+                }
+                else {
+                    intersection_rectangle[2] = monitor_rectangle[2];
+                }
+            }
+            else {
+                intersection_rectangle[0] = window_rectangle[0];
+
+                if ((monitor_rectangle[0] + monitor_rectangle[2]) < (window_rectangle[0] + window_rectangle[2])) {
+                    intersection_rectangle[2] = (monitor_rectangle[0] + monitor_rectangle[2]) - intersection_rectangle[0];
+                }
+                else {
+                    intersection_rectangle[2] = window_rectangle[2];
+                }
+            }
+
+            // y, height
+            if (window_rectangle[1] < monitor_rectangle[1]) {
+                intersection_rectangle[1] = monitor_rectangle[1];
+
+                if ((window_rectangle[1] + window_rectangle[3]) < (monitor_rectangle[1] + monitor_rectangle[3])) {
+                    intersection_rectangle[3] = (window_rectangle[1] + window_rectangle[3]) - intersection_rectangle[1];
+                }
+                else {
+                    intersection_rectangle[3] = monitor_rectangle[3];
+                }
+            }
+            else {
+                intersection_rectangle[1] = window_rectangle[1];
+
+                if ((monitor_rectangle[1] + monitor_rectangle[3]) < (window_rectangle[1] + window_rectangle[3])) {
+                    intersection_rectangle[3] = (monitor_rectangle[1] + monitor_rectangle[3]) - intersection_rectangle[1];
+                }
+                else {
+                    intersection_rectangle[3] = window_rectangle[3];
+                }
+            }
+
+            int overlap_area = intersection_rectangle[2] * intersection_rectangle[3];
+            if (overlap_area > max_overlap_area) {
+                closest_monitor = monitors[i];
+                max_overlap_area = overlap_area;
+            }
+        }
+    }
+
+    if (closest_monitor) {
+        *monitor = closest_monitor;
+        success = true;
+    }
+
+    // true: monitor contains the monitor the window is most on
+    // false: monitor is unmodified
+    return success;
+}
 
 /* Reads in a shader's source from a file and compiles it, returning a new GLuint corresponding to
    the shader. Throws an exception and outputs the error log upon compilation failure. */
@@ -98,13 +203,6 @@ GLuint compile_program() {
     return shader_program;
 }
 
-// Callback for when the window is resized
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    std::cout << "Window resized to " << width << " x " << height << std::endl;
-    glViewport(0, 0, width, height);
-    g_proj_matrix = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
-}
-
 void debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
     const GLchar* message, const void* userParam) {
 
@@ -161,7 +259,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
             } else {
                 std::cout << "First person mode disabled" << std::endl;
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-                camera.stop();
+                g_camera.stop();
             }
         } else if (key == GLFW_KEY_T) {
             g_disable_physics = !g_disable_physics;
@@ -176,10 +274,118 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 void process_input(GLFWwindow *window, double dt) {
     if (g_first_person) {
-        camera.process_inputs(window, dt);
+        g_camera.process_inputs(window, dt);
     }
-    glm::mat4 view_proj_matrix = g_proj_matrix * camera.get_view();
+    glm::mat4 view_proj_matrix = g_proj_matrix * g_camera.get_view();
     glUniformMatrix4fv(2, 1, GL_FALSE, &view_proj_matrix[0][0]);
+}
+
+ImGuiStyle new_imgui_style() {
+    ImGuiStyle style = ImGuiStyle();
+    auto &colors = style.Colors;
+    colors[ImGuiCol_WindowBg] = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
+
+    colors[ImGuiCol_Header] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+    colors[ImGuiCol_HeaderHovered] = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
+    colors[ImGuiCol_HeaderActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+
+    colors[ImGuiCol_Button] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+    colors[ImGuiCol_ButtonHovered] = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
+    colors[ImGuiCol_ButtonActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+
+    colors[ImGuiCol_FrameBg] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+    colors[ImGuiCol_FrameBgHovered] = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
+    colors[ImGuiCol_FrameBgActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+
+    colors[ImGuiCol_Tab] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+    colors[ImGuiCol_TabHovered] = ImVec4(0.38f, 0.38f, 0.38f, 1.0f);
+    colors[ImGuiCol_TabActive] = ImVec4(0.28f, 0.28f, 0.28f, 1.0f);
+    colors[ImGuiCol_TabUnfocused] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+    colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+
+    colors[ImGuiCol_TitleBg] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+    colors[ImGuiCol_TitleBgActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+    colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+
+    style.WindowRounding = 0.0f;
+    style.TabRounding = 0.0f;
+    return style;
+}
+
+void build_imgui_dock() {
+    static bool init = true;
+
+    ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+    ImGuiID dock_id_left, dock_id_right;
+    if (init) {
+        init = false;
+        ImGui::DockBuilderRemoveNode(dockspace_id);
+        ImGui::DockBuilderAddNode(dockspace_id);
+        ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
+
+        ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.2f, &dock_id_left, &dock_id_right);
+        ImGui::DockBuilderDockWindow("Control Panel", dock_id_left);
+        ImGui::DockBuilderDockWindow("Scene", dock_id_right);
+
+        ImGui::DockBuilderFinish(dockspace_id);
+    }
+}
+
+void build_control_panel() {
+    ImGui::Begin("Control Panel");
+    ImGui::Text("TODO");
+    ImGui::End();
+}
+
+void build_scene() {
+    ImGui::Begin("Scene");
+
+    ImVec2 size = ImGui::GetContentRegionAvail();
+    g_proj_matrix = glm::perspective(glm::radians(45.0f), (float)size.x / (float)size.y, 0.1f, 100.0f);
+    if (g_particle_simulator == nullptr) {
+        g_particle_simulator = new ParticleSimulator(size.x, size.y);
+    }
+    g_particle_simulator->update_viewport(size.x, size.y);
+
+    // Render
+    ImGui::Image(
+        (void*)(int64_t)g_particle_simulator->render(g_psystem),
+        ImGui::GetContentRegionAvail(),
+        ImVec2(0, 1), 
+        ImVec2(1, 0)
+    );
+    ImGui::End();
+}
+
+void check_dpi(GLFWwindow *window) {
+    static float dpi_scale = 1.0;
+    GLFWmonitor *monitor;
+    if (glfw_get_window_monitor(&monitor, window)) {
+        float xscale, yscale;
+        glfwGetMonitorContentScale(monitor, &xscale, &yscale);
+
+        // xscale should be equal to yscale
+        if (xscale != dpi_scale) {  
+            dpi_scale = xscale;
+            std::cout << "Changing DPI scale to: " << dpi_scale << std::endl;
+
+            // Clear existing fonts
+            ImGuiIO &io = ImGui::GetIO();
+
+            io.Fonts->Clear();
+
+            float font_size = 15.0f * xscale;
+            ImFontConfig font_cfg;
+            font_cfg.FontDataOwnedByAtlas = false;
+            io.Fonts->AddFontFromMemoryTTF(proggyvector_regular_ttf, proggyvector_regular_ttf_len, font_size, &font_cfg);
+            
+            ImGui_ImplOpenGL3_CreateFontsTexture();
+
+            ImGuiStyle style = new_imgui_style();
+            style.ScaleAllSizes(xscale);
+            ImGui::GetStyle() = style;
+        }
+    }
 }
 
 //----------------------------------------
@@ -222,24 +428,33 @@ int main() {
     std::cout << "OpenGL Shading Language Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
     // Set callbacks callback
-    framebuffer_size_callback(window, START_WIDTH, START_HEIGHT);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetKeyCallback(window, key_callback);
     glDebugMessageCallback(debug_message_callback, nullptr);
+
+    // Initialize IMGUI
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    ImGui::GetStyle() = new_imgui_style();
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);          // install_callback=true will install GLFW callbacks and chain to existing ones
+    ImGui_ImplOpenGL3_Init();
 
     // Render settings
     glPointSize(5.0f);
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glfwSwapInterval(0);    // 0 = disable vsync | 1 = enable vsync
+    glfwSwapInterval(1);    // 0 = disable vsync | 1 = enable vsync
 
     // Create shader program
     GLuint shader_program = compile_program();
     glUseProgram(shader_program);
 
     // Initial camera
-    glm::mat4 view_proj_matrix = g_proj_matrix * camera.get_view();
+    glm::mat4 view_proj_matrix = g_proj_matrix * g_camera.get_view();
     glUniformMatrix4fv(2, 1, GL_FALSE, &view_proj_matrix[0][0]);
 
     // Initialize physics
@@ -258,17 +473,16 @@ int main() {
     }
     printf("total particles: %d\n", total);
 
-    ParticleSystem *psystem = new ParticleSystem(zbound, xybound, total);
+    g_psystem = new ParticleSystem(zbound, xybound, total);
     int id = 0;
     for (float i = 0; i < xybound; i += xystep) {
         for (float j = 0; j < xybound; j += xystep) {
             for (int k = 0; k < i/klevels; k++) {
-                psystem->init_particle(id++, glm::vec3(i, j, k*xystep));
+                g_psystem->init_particle(id++, glm::vec3(i, j, k*xystep));
             }
         }
     }
 
-    ParticleSimulator particle_simulator;
     FPSTimer fps_timer;
     Timer frame_timer;
 
@@ -276,10 +490,8 @@ int main() {
     while(!glfwWindowShouldClose(window)) {
         // Update FPS
         glfwSetWindowTitle(window, ("CS179 Project | FPS: " + std::to_string(fps_timer.get_fps())).c_str());
+        check_dpi(window);  // must be called before imgui::newframe()
 
-        // Clear screen; use a black background
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
 
         // FPS
         fps_timer.update();
@@ -290,24 +502,33 @@ int main() {
         process_input(window, dt);
 
         // Physics
-        // Timer physics_timer;
         if (!g_disable_physics) {
-            update(psystem);
+            update(g_psystem);
         }
         
-        // std::cout << "physics_time: " << physics_timer.elapsed_s() << " s" << std::endl;
+        // Imgui
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        build_imgui_dock();
+        build_control_panel();
+        build_scene();
 
-        // Rendering
-        Timer render_timer;
-        particle_simulator.render(psystem);
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         
         // Swap buffers and poll events
         glfwSwapBuffers(window);
-        // std::cout << "render_time: " << render_timer.elapsed_s() << " s" << std::endl;
         glfwPollEvents();    
     }
 
     // Clean up
+    delete g_psystem;
+    delete g_particle_simulator;
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwTerminate();
     return 0;
 }
