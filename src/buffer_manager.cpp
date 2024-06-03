@@ -23,7 +23,7 @@ void BufferManager::init(int width, int height) {
 
     auto result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (result != GL_FRAMEBUFFER_COMPLETE) {
-        std::cout << "debug: " << result << std::endl;
+        std::cout << "frame buffer not complete; status: " << result << std::endl;
         throw std::runtime_error("Framebuffer is not complete!");
     }
 
