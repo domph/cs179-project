@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <format>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -35,7 +36,8 @@ glm::mat4 g_proj_matrix;
 
 bool g_first_person = false;
 bool g_disable_physics = false;
-Camera g_camera(glm::vec3(13.432151, -18.409569, 15.710428), glm::vec3(0, 0, 1), 245.800140, -21.050030);
+bool g_vsync = true;
+Camera g_camera(glm::vec3(-15, -15, 15), glm::vec3(0, 0, 1), 315, -12);
 
 //----------------------------------------
 // FUNCTIONS
@@ -249,6 +251,10 @@ void debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum severi
         << " | Message: " << message << std::endl;
 }
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);
+}  
+
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {
         if (key == GLFW_KEY_E) {
@@ -268,6 +274,15 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
             } else {
                 std::cout << "Physics enabled" << std::endl;
             }
+        } else if (key == GLFW_KEY_V) {
+            g_vsync = !g_vsync;
+            if (g_vsync) {
+                std::cout << "VSync enabled" << std::endl;
+                glfwSwapInterval(1);
+            } else {
+                std::cout << "VSync disabled" << std::endl;
+                glfwSwapInterval(0);
+            }
         }
     } 
 }
@@ -282,26 +297,28 @@ void process_input(GLFWwindow *window, double dt) {
 
 ImGuiStyle new_imgui_style() {
     ImGuiStyle style = ImGuiStyle();
+    ImGui::StyleColorsDark(&style);
+
     auto &colors = style.Colors;
     colors[ImGuiCol_WindowBg] = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
 
-    colors[ImGuiCol_Header] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
-    colors[ImGuiCol_HeaderHovered] = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
-    colors[ImGuiCol_HeaderActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+    // colors[ImGuiCol_Header] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+    // colors[ImGuiCol_HeaderHovered] = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
+    // colors[ImGuiCol_HeaderActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
 
-    colors[ImGuiCol_Button] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
-    colors[ImGuiCol_ButtonHovered] = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
-    colors[ImGuiCol_ButtonActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+    // colors[ImGuiCol_Button] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+    // colors[ImGuiCol_ButtonHovered] = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
+    // colors[ImGuiCol_ButtonActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
 
-    colors[ImGuiCol_FrameBg] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
-    colors[ImGuiCol_FrameBgHovered] = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
-    colors[ImGuiCol_FrameBgActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+    // colors[ImGuiCol_FrameBg] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+    // colors[ImGuiCol_FrameBgHovered] = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
+    // colors[ImGuiCol_FrameBgActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
 
-    colors[ImGuiCol_Tab] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
-    colors[ImGuiCol_TabHovered] = ImVec4(0.38f, 0.38f, 0.38f, 1.0f);
-    colors[ImGuiCol_TabActive] = ImVec4(0.28f, 0.28f, 0.28f, 1.0f);
-    colors[ImGuiCol_TabUnfocused] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
-    colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+    // colors[ImGuiCol_Tab] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+    // colors[ImGuiCol_TabHovered] = ImVec4(0.38f, 0.38f, 0.38f, 1.0f);
+    // colors[ImGuiCol_TabActive] = ImVec4(0.28f, 0.28f, 0.28f, 1.0f);
+    // colors[ImGuiCol_TabUnfocused] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+    // colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
 
     colors[ImGuiCol_TitleBg] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
     colors[ImGuiCol_TitleBgActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
@@ -323,7 +340,7 @@ void build_imgui_dock() {
         ImGui::DockBuilderAddNode(dockspace_id);
         ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
 
-        ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.2f, &dock_id_left, &dock_id_right);
+        ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.25f, &dock_id_left, &dock_id_right);
         ImGui::DockBuilderDockWindow("Control Panel", dock_id_left);
         ImGui::DockBuilderDockWindow("Scene", dock_id_right);
 
@@ -331,9 +348,85 @@ void build_imgui_dock() {
     }
 }
 
+// ImGui helper functions
+namespace ImGui {
+    void TextWithBackground(const char *text, bool offset_half_char = false) {
+        ImDrawList *draw_list = ImGui::GetWindowDrawList();
+        ImGuiStyle &style = ImGui::GetStyle();
+
+        ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+        ImVec2 text_pos(cursor_pos.x + style.FramePadding.x, cursor_pos.y + style.FramePadding.y);
+        if (offset_half_char) {
+            text_pos.x += ImGui::CalcTextSize(" ").x / 2;
+        }
+
+        ImVec2 text_size = ImGui::CalcTextSize(text);
+        ImVec2 rect_size(text_size.x + style.FramePadding.x * 2, text_size.y + style.FramePadding.y * 2);
+
+        ImVec2 rect_min = cursor_pos;
+        ImVec2 rect_max(rect_min.x + rect_size.x, rect_min.y + rect_size.y);
+
+
+        ImU32 rect_color = ImGui::GetColorU32(ImGui::GetColorU32(style.Colors[ImGuiCol_Button]), style.DisabledAlpha);
+        ImU32 text_color = ImGui::GetColorU32(style.Colors[ImGuiCol_Text]);
+
+        draw_list->AddRectFilled(rect_min, rect_max, rect_color);
+        draw_list->AddText(text_pos, text_color, text);
+
+        ImGui::Dummy(rect_size);
+    }
+}
+
 void build_control_panel() {
     ImGui::Begin("Control Panel");
-    ImGui::Text("TODO");
+    ImGui::TextWrapped("This is a simulation of fluid particles in an invisible container.");
+    if (ImGui::CollapsingHeader("Controls", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::SeparatorText("Camera Controls");
+
+        ImGui::TextWithBackground("     E     ");
+        ImGui::SameLine();
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Toggle camera control");
+
+        ImGui::TextWithBackground("   Mouse   ");
+        ImGui::SameLine();
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Change camera direction");
+
+        ImGui::TextWithBackground("   WASD    ", true);
+        ImGui::SameLine();
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Change camera position");
+
+        ImGui::TextWithBackground("Hold LShift");
+        ImGui::SameLine();
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Faster camera movement");
+
+        ImGui::TextWithBackground("Hold LCtrl ", true);
+        ImGui::SameLine();
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Slower camera movement");
+
+        ImGui::SeparatorText("Physics Controls");
+        
+        ImGui::TextWithBackground("     T     ");
+        ImGui::SameLine();
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Toggle physics");
+
+        ImGui::SeparatorText("Physics Controls");
+
+        ImGui::TextWithBackground("     V     ");
+        ImGui::SameLine();
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Toggle VSync");
+    }
+    ImGui::Spacing();
+
+    if (ImGui::CollapsingHeader("Add Particles", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::TextWrapped("This allows you to add parcels of particles to the simulation at a specified location.");
+    }
     ImGui::End();
 }
 
@@ -428,8 +521,10 @@ int main() {
     std::cout << "OpenGL Shading Language Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
     // Set callbacks callback
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);  
     glfwSetKeyCallback(window, key_callback);
     glDebugMessageCallback(debug_message_callback, nullptr);
+    glViewport(0, 0, START_WIDTH, START_HEIGHT);
 
     // Initialize IMGUI
     IMGUI_CHECKVERSION();
@@ -447,7 +542,7 @@ int main() {
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glfwSwapInterval(1);    // 0 = disable vsync | 1 = enable vsync
+    glfwSwapInterval(g_vsync ? 1 : 0);    // 0 = disable vsync | 1 = enable vsync
 
     // Create shader program
     GLuint shader_program = compile_program();
@@ -483,18 +578,15 @@ int main() {
         }
     }
 
-    FPSTimer fps_timer;
     Timer frame_timer;
 
     // Main loop
     while(!glfwWindowShouldClose(window)) {
-        // Update FPS
-        glfwSetWindowTitle(window, ("CS179 Project | FPS: " + std::to_string(fps_timer.get_fps())).c_str());
+        glClearColor(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        glfwSetWindowTitle(window, (std::format("CS179 Project | FPS: {:.1f}", ImGui::GetIO().Framerate)).c_str());//std::to_string(ImGui::GetIO().Framerate)).c_str());
         check_dpi(window);  // must be called before imgui::newframe()
-
-
-        // FPS
-        fps_timer.update();
 
         // User input
         double dt = frame_timer.elapsed_s();
