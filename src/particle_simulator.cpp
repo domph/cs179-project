@@ -41,8 +41,6 @@ void ParticleSimulator::create_vbo(size_t size) {
 
 // Caller is responsible for checking that vao/vbo exist
 void ParticleSimulator::delete_vbo() {
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, vbo); 
     if (glUnmapBuffer(GL_ARRAY_BUFFER) == GL_FALSE) {
         std::cerr << "Failed to unmap buffer" << std::endl;
