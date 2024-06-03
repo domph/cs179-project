@@ -42,14 +42,14 @@ struct Box {
         int y = (pos.y + EPS) / P_H;
         int z = (pos.z + EPS) / P_H;
 
-        if (x >= 0 && x < partitions.size() &&
-            y >= 0 && y < partitions[x].size() &&
-            z >= 0 && z < partitions[x][y].size()) {
+        if (x >= 0 && (size_t)x < partitions.size() &&
+            y >= 0 && (size_t)y < partitions[x].size() &&
+            z >= 0 && (size_t)z < partitions[x][y].size()) {
             partitions[x][y][z].push_back(id);
         } else {
             printf("Box error: particle out of bounds!\n");
             printf("loc:   x: %d, y: %d, z: %d\n", x, y, z);
-            printf("bound: x: %d, y: %d, z: %d\n", partitions.size(), partitions[x].size(), partitions[x][y].size());
+            printf("bound: x: %lld, y: %lld, z: %lld\n", partitions.size(), partitions[x].size(), partitions[x][y].size());
         }
     }
 

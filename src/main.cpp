@@ -207,6 +207,9 @@ GLuint compile_program() {
 
 void debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
     const GLchar* message, const void* userParam) {
+    (void)id;
+    (void)length;
+    (void)userParam;
 
     if (type == GL_DEBUG_TYPE_OTHER)
         return;
@@ -251,11 +254,16 @@ void debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum severi
         << " | Message: " << message << std::endl;
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+    (void)window;
+
     glViewport(0, 0, width, height);
 }  
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+    (void)mods;
+    (void)scancode;
+
     if (action == GLFW_PRESS) {
         if (key == GLFW_KEY_E) {
             g_first_person = !g_first_person;
@@ -434,6 +442,11 @@ void build_scene() {
     ImGui::Begin("Scene");
 
     ImVec2 size = ImGui::GetContentRegionAvail();
+    if (size.x <= 0 || size.y <= 0) {
+        ImGui::End();
+        return;
+    }
+
     g_proj_matrix = glm::perspective(glm::radians(45.0f), (float)size.x / (float)size.y, 0.1f, 100.0f);
     if (g_particle_simulator == nullptr) {
         g_particle_simulator = new ParticleSimulator(size.x, size.y);
@@ -443,7 +456,7 @@ void build_scene() {
     // Render
     ImGui::Image(
         (void*)(int64_t)g_particle_simulator->render(g_psystem),
-        ImGui::GetContentRegionAvail(),
+        size,
         ImVec2(0, 1), 
         ImVec2(1, 0)
     );

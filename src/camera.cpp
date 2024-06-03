@@ -1,11 +1,11 @@
 #define GLM_ENABLE_EXPERIMENTAL
-#include "Camera.h"
+#include "camera.h"
 #include <cmath>
 #include <iostream>
 #include <glm/gtx/string_cast.hpp>
 
 Camera::Camera(glm::vec3 position, glm::vec3 up, float look_x, float look_y, float mouse_sensitivity, float speed)
-    : position(position), up(up), mouse_sensitivity(mouse_sensitivity), movement_speed(speed), velocity(glm::vec3(0.0f)) {
+    : position(position), up(up), velocity(glm::vec3(0.0f)), movement_speed(speed), mouse_sensitivity(mouse_sensitivity) {
     look.x = look_x;
     look.y = look_y;
 

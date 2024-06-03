@@ -5,6 +5,8 @@ project(cs179-project)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
+# set(CMAKE_C_COMPILER "C:/mingw64/bin/clang.exe")
+# set(CMAKE_CXX_COMPILER "C:/mingw64/bin/clang++.exe")
 #set(CMAKE_BUILD_TYPE RELEASE)
 
 set(SRC_LIST
@@ -26,13 +28,16 @@ set(IMGUI_SRC_LIST
 )
 
 # Source files
-add_executable(${PROJECT_NAME} ${SRC_LIST} ${IMGUI_SRC_LIST})
-
-# Add ImGUI include files
-include_directories(lib/imgui-docking-1.90.7)
+add_executable(${PROJECT_NAME} ${SRC_LIST})
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
 
 # Add GLM include files
 include_directories(lib/glm-1.0.1)
+
+# Add and build ImGui
+add_library(imgui ${IMGUI_SRC_LIST})
+include_directories(lib/imgui-docking-1.90.7)
+target_link_libraries(${PROJECT_NAME} imgui)
 
 # Add and build GLEW
 set(BUILD_UTILS off)
@@ -49,17 +54,17 @@ add_subdirectory(lib/glfw-3.4 EXCLUDE_FROM_ALL)
 include_directories(lib/glfw-3.4/include)
 target_link_libraries(${PROJECT_NAME} glfw)
 
-# Add OpenGL library
+# Add OpenGL
 find_package(OpenGL REQUIRED)
 target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES})
 
 # Platform-specific settings
-if (WIN32)
-    target_link_libraries(${PROJECT_NAME} opengl32)
-elseif (APPLE)
+# if (WIN32)
+#     target_link_libraries(${PROJECT_NAME} opengl32)
+# elseif (APPLE)
     # TODO
     #find_library(COCOA_LIBRARY Cocoa)
     #find_library(IOKIT_LIBRARY IOKit)
     #find_library(COREVIDEO_LIBRARY CoreVideo)
     #target_link_libraries(${PROJECT_NAME} ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
-endif()
+# endif()
