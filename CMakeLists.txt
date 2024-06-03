@@ -7,14 +7,30 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
 #set(CMAKE_BUILD_TYPE RELEASE)
 
-# Source files
-add_executable(${PROJECT_NAME}
+set(SRC_LIST
     "src/main.cpp"
     "src/particle_simulator.cpp"
     "src/physics.cpp"
-    "src/camera.cpp")
+    "src/camera.cpp"
+)
 
-# Add GLM
+set(IMGUI_SRC_LIST
+    "lib/imgui-docking-1.90.7/imgui.cpp"
+    "lib/imgui-docking-1.90.7/imgui_draw.cpp"
+    "lib/imgui-docking-1.90.7/imgui_impl_glfw.cpp"
+    "lib/imgui-docking-1.90.7/imgui_impl_opengl3.cpp"
+    "lib/imgui-docking-1.90.7/imgui_stdlib.cpp"
+    "lib/imgui-docking-1.90.7/imgui_tables.cpp"
+    "lib/imgui-docking-1.90.7/imgui_widgets.cpp"
+)
+
+# Source files
+add_executable(${PROJECT_NAME} ${SRC_LIST} ${IMGUI_SRC_LIST})
+
+# Add ImGUI include files
+include_directories(lib/imgui-docking-1.90.7)
+
+# Add GLM include files
 include_directories(lib/glm-1.0.1)
 
 # Add and build GLEW
