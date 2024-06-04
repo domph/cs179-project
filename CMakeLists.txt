@@ -2,17 +2,21 @@ cmake_minimum_required(VERSION 3.10)
 project(cs179-project)
 
 ## FOR SUBMISSION
-set(_RELEASE_ ON)
+set(ENABLE_DEBUG_MODE ON)
+set(ENABLE_STRICT_MODE ON)
 
 # Specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-if (_RELEASE_)
-    set(CMAKE_BUILD_TYPE Release)
-else()
+if (ENABLE_DEBUG_MODE)
     set(CMAKE_BUILD_TYPE RelWithDebInfo)
+else()
+    set(CMAKE_BUILD_TYPE Release)
 endif() 
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
+if (MINGW)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
+    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+endif()
 
 set(SRC_LIST
     "src/main.cpp"
@@ -34,13 +38,8 @@ set(IMGUI_SRC_LIST
 
 # Source files
 add_executable(${PROJECT_NAME} ${SRC_LIST})
-if (_RELEASE_)
-    #target_compile_options(${PROJECT_NAME} PRIVATE -static)
-elseif()
+if (ENABLE_STRICT_MODE)
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
-endif()
-if (WIN32)
-    target_link_libraries(${PROJECT_NAME} -static -static-libgcc -static-libstdc++)
 endif()
 
 # Add GLM include files
