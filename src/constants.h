@@ -54,6 +54,8 @@
         } \
     }
 
+#define SHAKE(t) (8.0f * glm::sin(1.5f * t)) 
+
 
 /* Physics constants */
 #define DT 0.02f
@@ -72,5 +74,3 @@
 
 #define XSPH_C 0.01f
 #define VORTICITY_EPS 3.0f
-
-#define SHAKE(t) (5.0f * glm::sin(2.0f * t)) 

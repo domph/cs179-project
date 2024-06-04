@@ -31,6 +31,12 @@ void calcPartition(ParticleSystem *psystem) {
     }
 }
 
+/* This function has been designed to be easily parallelized as a CUDA kernel
+   as each iteration of the outermost for-loop over the particles can be
+   computed independently. Moreover, the various particle properties are all
+   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
+   and so they can be accessed by GPU threads in a coalesced fashion with
+   minimal bank conflicts. */
 void kNearestNeighbors(ParticleSystem *psystem) {
     Box *box = psystem->box;
     for (int p = 0; p < psystem->num_particles; p++) {
@@ -84,6 +90,12 @@ void kNearestNeighbors(ParticleSystem *psystem) {
     }
 }
 
+/* This function has been designed to be easily parallelized as a CUDA kernel
+   as each iteration of the outermost for-loop over the particles can be
+   computed independently. Moreover, the various particle properties are all
+   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
+   and so they can be accessed by GPU threads in a coalesced fashion with
+   minimal bank conflicts. */
 void applyBodyForces(ParticleSystem *psystem, float t) {
     (void) t;
 
@@ -94,6 +106,12 @@ void applyBodyForces(ParticleSystem *psystem, float t) {
     }
 }
 
+/* This function has been designed to be easily parallelized as a CUDA kernel
+   as each iteration of the outermost for-loop over the particles can be
+   computed independently. Moreover, the various particle properties are all
+   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
+   and so they can be accessed by GPU threads in a coalesced fashion with
+   minimal bank conflicts. */
 void calcLambda(ParticleSystem *psystem) {
     for (int i = 0; i < psystem->num_particles; i++) {
         glm::vec3 pi = psystem->pos[i];
@@ -125,6 +143,12 @@ void calcLambda(ParticleSystem *psystem) {
     }
 }
 
+/* This function has been designed to be easily parallelized as a CUDA kernel
+   as each iteration of the outermost for-loop over the particles can be
+   computed independently. Moreover, the various particle properties are all
+   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
+   and so they can be accessed by GPU threads in a coalesced fashion with
+   minimal bank conflicts. */
 void calcDeltaPos(ParticleSystem *psystem) {
     for (int i = 0; i < psystem->num_particles; i++) {
         glm::vec3 pi = psystem->pos[i];
@@ -151,18 +175,36 @@ void calcDeltaPos(ParticleSystem *psystem) {
     }
 }
 
+/* This function has been designed to be easily parallelized as a CUDA kernel
+   as each iteration of the outermost for-loop over the particles can be
+   computed independently. Moreover, the various particle properties are all
+   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
+   and so they can be accessed by GPU threads in a coalesced fashion with
+   minimal bank conflicts. */
 void updatePos(ParticleSystem *psystem) {
     for (int i = 0; i < psystem->num_particles; i++) {
         psystem->pos[i] += psystem->deltapos[i];
     }
 }
 
+/* This function has been designed to be easily parallelized as a CUDA kernel
+   as each iteration of the outermost for-loop over the particles can be
+   computed independently. Moreover, the various particle properties are all
+   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
+   and so they can be accessed by GPU threads in a coalesced fashion with
+   minimal bank conflicts. */
 void savePrevPos(ParticleSystem *psystem) {
     for (int i = 0; i < psystem->num_particles; i++) {
         psystem->prevpos[i] = psystem->pos[i];
     }
 }
 
+/* This function has been designed to be easily parallelized as a CUDA kernel
+   as each iteration of the outermost for-loop over the particles can be
+   computed independently. Moreover, the various particle properties are all
+   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
+   and so they can be accessed by GPU threads in a coalesced fashion with
+   minimal bank conflicts. */
 void calcVel(ParticleSystem *psystem) {
     for (int i = 0; i < psystem->num_particles; i++) {
         psystem->vel[i] = (psystem->pos[i] - psystem->prevpos[i]) / DT;
@@ -170,12 +212,24 @@ void calcVel(ParticleSystem *psystem) {
     }
 }
 
+/* This function has been designed to be easily parallelized as a CUDA kernel
+   as each iteration of the outermost for-loop over the particles can be
+   computed independently. Moreover, the various particle properties are all
+   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
+   and so they can be accessed by GPU threads in a coalesced fashion with
+   minimal bank conflicts. */
 void updateVel(ParticleSystem *psystem) {
     for (int i = 0; i < psystem->num_particles; i++) {
         psystem->vel[i] = psystem->nextvel[i];
     }
 }
 
+/* This function has been designed to be easily parallelized as a CUDA kernel
+   as each iteration of the outermost for-loop over the particles can be
+   computed independently. Moreover, the various particle properties are all
+   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
+   and so they can be accessed by GPU threads in a coalesced fashion with
+   minimal bank conflicts. */
 void applyCollisionResponse(ParticleSystem *psystem) {
     for (int i = 0; i < psystem->num_particles; i++) {   
         if (psystem->pos[i].x < 0) {
@@ -207,6 +261,12 @@ void applyCollisionResponse(ParticleSystem *psystem) {
     }
 }
 
+/* This function has been designed to be easily parallelized as a CUDA kernel
+   as each iteration of the outermost for-loop over the particles can be
+   computed independently. Moreover, the various particle properties are all
+   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
+   and so they can be accessed by GPU threads in a coalesced fashion with
+   minimal bank conflicts. */
 void calcVorticityViscosity(ParticleSystem *psystem) {
     for (int i = 0; i < psystem->num_particles; i++) {
         glm::vec3 pi = psystem->pos[i];
@@ -229,6 +289,12 @@ void calcVorticityViscosity(ParticleSystem *psystem) {
     }
 }
 
+/* This function has been designed to be easily parallelized as a CUDA kernel
+   as each iteration of the outermost for-loop over the particles can be
+   computed independently. Moreover, the various particle properties are all
+   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
+   and so they can be accessed by GPU threads in a coalesced fashion with
+   minimal bank conflicts. */
 void applyVorticityCorrection(ParticleSystem *psystem) {
     for (int i = 0; i < psystem->num_particles; i++) {
         glm::vec3 pi = psystem->pos[i];
