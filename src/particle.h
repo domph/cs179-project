@@ -108,6 +108,7 @@ struct ParticleSystem {
 
     ParticleSystem(int xybound, int zbound) {
         // Initial calculation of num_particles
+        num_particles = 0;
         PSYSTEM_INIT_SPAWN(num_particles++);
 
         pos       = (glm::vec3 *) malloc(num_particles * sizeof(glm::vec3));
