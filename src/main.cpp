@@ -29,8 +29,8 @@
 // CONSTANTS
 //----------------------------------------
 
-constexpr int START_WIDTH = 1600;
-constexpr int START_HEIGHT = 1200;
+constexpr int START_WIDTH = 1800;
+constexpr int START_HEIGHT = 1300;
 
 //----------------------------------------
 // GLOBALS
@@ -48,6 +48,7 @@ bool g_vsync = true;
 Camera g_camera(glm::vec3(-15, -15, 15), glm::vec3(0, 0, 1), 315, -12);
 
 constexpr float BASE_FONT_SIZE = 15.0f;
+constexpr float DEFAULT_POINT_SIZE = 5.0f;
 
 //----------------------------------------
 // FUNCTIONS
@@ -390,7 +391,6 @@ namespace ImGui {
         ImVec2 rect_min = cursor_pos;
         ImVec2 rect_max(rect_min.x + rect_size.x, rect_min.y + rect_size.y);
 
-
         ImU32 rect_color = ImGui::GetColorU32(ImGui::GetColorU32(style.Colors[ImGuiCol_Button]), style.DisabledAlpha);
         ImU32 text_color = ImGui::GetColorU32(style.Colors[ImGuiCol_Text]);
 
@@ -399,30 +399,49 @@ namespace ImGui {
 
         ImGui::Dummy(rect_size);
     }
+    void OnOff(const char *label, bool val) {
+        ImGui::Text(label);
+        ImGui::SameLine();
+        if (val) {
+            ImGui::TextColored(ImVec4(0, 1, 0, 1), "ON");
+        } else {
+            ImGui::TextColored(ImVec4(1, 0, 0, 1), "OFF");
+        }
+    }
 }
 
 void build_control_panel() {
     ImGui::Begin("Control Panel");
     ImGui::TextWrapped("This is a simulation of fluid particles in an invisible container.");
     if (ImGui::CollapsingHeader("Properties", ImGuiTreeNodeFlags_DefaultOpen)) {
-        ImGui::SeparatorText("System");
+        ImGui::SeparatorText("READ-ONLY");
         ImGui::Text("Particles: %d", g_psystem->num_particles);
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
         ImGui::Text("Global time: %.2f s", g_timer.elapsed_s());
+        
+        ImGui::Spacing();
+        ImGui::Separator();
         ImGui::Spacing();
 
-        ImGui::SeparatorText("Controls");
-        ImGui::Text("Camera control: %s", g_first_person ? "ON" : "OFF");
-        ImGui::Text("Physics: %s", g_disable_physics ? "OFF" : "ON");
+        ImGui::OnOff("Camera control:", g_first_person);
+        ImGui::OnOff("Physics:", !g_disable_physics);
 #ifndef __APPLE__
-        ImGui::Text("VSync: %s", g_vsync ? "ON" : "OFF");
+        ImGui::OnOff("VSync:", g_vsync);
 #endif
+        
+        ImGui::Spacing();
+        ImGui::Separator();
         ImGui::Spacing();
 
-        ImGui::SeparatorText("Camera");
-        ImGui::Text("Position: (%.2f, %.2f, %.2f)", g_camera.get_position().x, g_camera.get_position().y, g_camera.get_position().z);
-        ImGui::Text("View direction: (%.2f, %.2f, %.2f)", g_camera.get_view_dir().x, g_camera.get_view_dir().y, g_camera.get_view_dir().z);
+        ImGui::Text("Camera position: (%.2f, %.2f, %.2f)", g_camera.get_position().x, g_camera.get_position().y, g_camera.get_position().z);
+        ImGui::Text("Camera direction: (%.2f, %.2f, %.2f)", g_camera.get_view_dir().x, g_camera.get_view_dir().y, g_camera.get_view_dir().z);
+        
+        ImGui::SeparatorText("MODIFIABLE");
+
+        static float point_size = DEFAULT_POINT_SIZE;
+        ImGui::SliderFloat("Particle size", &point_size, 0.1f, 10.0f);
         ImGui::Spacing();
+        glPointSize(point_size);
     }
     if (ImGui::CollapsingHeader("Controls", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::SeparatorText("Camera Controls");
@@ -620,7 +639,7 @@ int main() {
     ImGui::GetStyle() = new_imgui_style();
 
     // Render settings
-    glPointSize(5.0f);
+    glPointSize(DEFAULT_POINT_SIZE);
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

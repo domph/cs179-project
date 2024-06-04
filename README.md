@@ -8,7 +8,7 @@ This project requires the following tools:
 
 - `CMake` (>= 3.12)
 - A C compiler
-- A C++ compiler that supports C++20
+- A C++ compiler that supports C++17
 - A build system (e.g., `make`)
 
 For simplicity, we assume the use of `make` as the build system on all platforms. Platform-specific instructions for setting up the required toolchain are provided below. To compile the project, run the following commands in the root directory:
