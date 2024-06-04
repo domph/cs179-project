@@ -20,6 +20,10 @@
 
 /* Simulation constants */
 #define SOLVER_ITERATIONS 3
+#define XYBOUND 15.0f
+#define ZBOUND  40.0f
+#define PARCEL_R 5.0f
+#define PARCEL_Z (ZBOUND / 2)
 
 
 /* Physics constants */

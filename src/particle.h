@@ -6,10 +6,10 @@
 #include "constants.h"
 
 
-/* Represents a box with a w x w square base and height h */
+/* Represents a box with a xybound x xybound square base and height zbound */
 struct Box {
-    int h;
-    int w;
+    int xybound;
+    int zbound;
     std::vector<std::vector<std::vector<std::vector<int>>>> partitions;
 
     int x_partitions;
@@ -17,16 +17,11 @@ struct Box {
     int z_partitions;
     int total_partitions;
 
-    Box(int h, int w) : h(h), w(w) {
-        x_partitions = (float)w / P_H + 1;
-        y_partitions = (float)w / P_H + 1;
-        z_partitions = (float)h / P_H + 1;
+    Box(int xybound, int zbound) : xybound(xybound), zbound(zbound) {
+        x_partitions = (float)xybound / P_H + 1;
+        y_partitions = (float)xybound / P_H + 1;
+        z_partitions = (float)zbound / P_H + 1;
         total_partitions = x_partitions * y_partitions * z_partitions;
-
-        printf("x partitions: %d\n", x_partitions);
-        printf("y partitions: %d\n", y_partitions);
-        printf("z partitions: %d\n", z_partitions);
-        printf("total partitions: %d\n", total_partitions);
 
         partitions.resize(x_partitions);
         for (int x = 0; x < x_partitions; x++) {
@@ -99,7 +94,7 @@ struct ParticleSystem {
 
     Box *box;
 
-    ParticleSystem(int h, int w, int num_particles) : num_particles(num_particles) {
+    ParticleSystem(int xybound, int zbound, int num_particles) : num_particles(num_particles) {
         pos       = (glm::vec3 *) malloc(num_particles * sizeof(glm::vec3));
         deltapos  = (glm::vec3 *) malloc(num_particles * sizeof(glm::vec3));
         prevpos   = (glm::vec3 *) malloc(num_particles * sizeof(glm::vec3));
@@ -125,7 +120,7 @@ struct ParticleSystem {
             }
         }
 
-        box = new Box(h, w);
+        box = new Box(xybound, zbound);
     }
 
     void init_particle(int id, glm::vec3 p) {

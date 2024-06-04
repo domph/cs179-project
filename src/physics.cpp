@@ -84,8 +84,9 @@ void kNearestNeighbors(ParticleSystem *psystem) {
     }
 }
 
-void applyBodyForces(ParticleSystem *psystem, float t)
-{
+void applyBodyForces(ParticleSystem *psystem, float t) {
+    (void) t;
+    
     for (int i = 0; i < psystem->num_particles; i++) {
         psystem->vel[i].z -= G * DT;
         // psystem->vel[i].x += SHAKE(t) * DT;
@@ -181,8 +182,8 @@ void applyCollisionResponse(ParticleSystem *psystem) {
             psystem->pos[i].x *= -1;
             psystem->vel[i].x *= -1;
         }
-        if (psystem->pos[i].x > psystem->box->w) {
-            psystem->pos[i].x = 2*psystem->box->w - psystem->pos[i].x;
+        if (psystem->pos[i].x > psystem->box->xybound) {
+            psystem->pos[i].x = 2*psystem->box->xybound - psystem->pos[i].x;
             psystem->vel[i].x *= -1;
         }
 
@@ -190,8 +191,8 @@ void applyCollisionResponse(ParticleSystem *psystem) {
             psystem->pos[i].y *= -1;
             psystem->vel[i].y *= -1;
         }
-        if (psystem->pos[i].y > psystem->box->w) {
-            psystem->pos[i].y = 2*psystem->box->w - psystem->pos[i].y;
+        if (psystem->pos[i].y > psystem->box->xybound) {
+            psystem->pos[i].y = 2*psystem->box->xybound - psystem->pos[i].y;
             psystem->vel[i].x *= -1;
         }
 
@@ -199,8 +200,8 @@ void applyCollisionResponse(ParticleSystem *psystem) {
             psystem->pos[i].z *= -1;
             psystem->vel[i].z *= -1;
         }
-        if (psystem->pos[i].z > psystem->box->h) {
-            psystem->pos[i].z = 2*psystem->box->h - psystem->pos[i].z;
+        if (psystem->pos[i].z > psystem->box->zbound) {
+            psystem->pos[i].z = 2*psystem->box->zbound - psystem->pos[i].z;
             psystem->vel[i].z *= -1;
         }
     }

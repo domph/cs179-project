@@ -626,30 +626,28 @@ int main() {
     glUniformMatrix4fv(g_proj_matrix_loc, 1, GL_FALSE, &view_proj_matrix[0][0]);
 
     // Initialize physics
-    float xybound = 15.0f;
-    float zbound  = 40.0f;
-    float xystep  = 0.5f;
-    int klevels = 4;
+    // float xystep  = 0.5f;
+    // int klevels = 4;
 
     int total = 0;
-    for (float i = 0; i < xybound; i += xystep) {
-        for (float j = 0; j < xybound; j += xystep) {
-            for (int k = 0; k < i/klevels; k++) {
-                total++;
-            }
-        }
-    }
-    printf("total particles: %d\n", total);
+    // for (float i = 0; i < XYBOUND; i += xystep) {
+    //     for (float j = 0; j < XYBOUND; j += xystep) {
+    //         for (int k = 0; k < i/klevels; k++) {
+    //             total++;
+    //         }
+    //     }
+    // }
+    // printf("Number of particles: %d\n", total);
 
-    g_psystem = new ParticleSystem(zbound, xybound, total);
-    int id = 0;
-    for (float i = 0; i < xybound; i += xystep) {
-        for (float j = 0; j < xybound; j += xystep) {
-            for (int k = 0; k < i/klevels; k++) {
-                g_psystem->init_particle(id++, glm::vec3(i, j, k*xystep));
-            }
-        }
-    }
+    g_psystem = new ParticleSystem(XYBOUND, ZBOUND, total);
+    // int id = 0;
+    // for (float i = 0; i < XYBOUND; i += xystep) {
+    //     for (float j = 0; j < XYBOUND; j += xystep) {
+    //         for (int k = 0; k < i/klevels; k++) {
+    //             g_psystem->init_particle(id++, glm::vec3(i, j, k*xystep));
+    //         }
+    //     }
+    // }
 
     Timer frame_timer;
     float t = 0;
