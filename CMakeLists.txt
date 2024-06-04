@@ -12,6 +12,7 @@ if (_RELEASE_)
 else()
     set(CMAKE_BUILD_TYPE RelWithDebInfo)
 endif() 
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
 
 set(SRC_LIST
     "src/main.cpp"
@@ -37,7 +38,10 @@ if (_RELEASE_)
     #target_compile_options(${PROJECT_NAME} PRIVATE -static)
 elseif()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
-endif() 
+endif()
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME} -static -static-libgcc -static-libstdc++)
+endif()
 
 # Add GLM include files
 include_directories(lib/glm-1.0.1)
