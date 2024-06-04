@@ -48,7 +48,7 @@ bool g_vsync = true;
 Camera g_camera(glm::vec3(-15, -15, 15), glm::vec3(0, 0, 1), 315, -12);
 
 constexpr float BASE_FONT_SIZE = 15.0f;
-constexpr float DEFAULT_POINT_SIZE = 5.0f;
+constexpr float DEFAULT_POINT_SIZE = 4.0f;
 
 //----------------------------------------
 // FUNCTIONS
