@@ -9,7 +9,7 @@
 #define P_H6 (P_H3 * P_H3)
 #define P_H9 (P_H3 * P_H6)
 
-#define MAX_NEIGHBORS 8
+#define MAX_NEIGHBORS 16
 
 
 /* Math constants */
@@ -23,7 +23,7 @@
 #define XYBOUND 16.0f
 #define ZBOUND  64.0f
 
-#define INIT_STEP 0.5f
+#define INIT_STEP 0.64f
 #define INIT_KLEVELS 4
 
 #define PARCEL_R 3.2f

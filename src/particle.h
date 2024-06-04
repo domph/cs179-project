@@ -153,7 +153,7 @@ struct ParticleSystem {
             vorticity[i] = glm::vec3(0.0f);
         }
 
-        glm::vec3 p = glm::vec3(x, y, PARCEL_Z);
+        glm::vec3 p = glm::vec3(x - PARCEL_R, y - PARCEL_R, PARCEL_Z);
         for (float i = 0; i < 2 * PARCEL_R; i += PARCEL_STEP) {
             for (float j = 0; j < 2 * PARCEL_R; j += PARCEL_STEP) {
                 for (int k = 0; k < 2 * PARCEL_R; k += PARCEL_STEP) {
