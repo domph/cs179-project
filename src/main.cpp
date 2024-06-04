@@ -534,7 +534,7 @@ int main() {
         return -1;
     }
 
-    // Set the OpenGL version to 4.6
+    // Set the OpenGL version to 4.1
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);

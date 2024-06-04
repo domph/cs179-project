@@ -1,6 +1,6 @@
 ## Description
 
-This program is a GUI-based fluid dynamics simulator; as such, it cannot be used via just the command-line.
+This program is a GUI-based fluid dynamics simulator; as such, it cannot be used via just the command-line. OpenGL 4.1 is required to run this program.
 
 ## Compilation Instructions
 
