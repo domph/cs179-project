@@ -441,6 +441,9 @@ void build_control_panel() {
 
         static float point_size = DEFAULT_POINT_SIZE;
         ImGui::SliderFloat("Particle size", &point_size, 0.1f, 10.0f);
+        if (ImGui::Button("Reset Container", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+            std::cout << "Resetting container" << std::endl;
+        }
         ImGui::Spacing();
         glPointSize(point_size);
     }

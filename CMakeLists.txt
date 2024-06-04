@@ -1,13 +1,17 @@
 cmake_minimum_required(VERSION 3.10)
 project(cs179-project)
 
+## FOR SUBMISSION
+set(_RELEASE_ OFF)
+
 # Specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_BUILD_TYPE RelWithDebInfo)
-# set(CMAKE_C_COMPILER "C:/mingw64/bin/clang.exe")
-# set(CMAKE_CXX_COMPILER "C:/mingw64/bin/clang++.exe")
-#set(CMAKE_BUILD_TYPE RELEASE)
+if (_RELEASE_)
+    set(CMAKE_BUILD_TYPE Release)
+else()
+    set(CMAKE_BUILD_TYPE RelWithDebInfo)
+endif() 
 
 set(SRC_LIST
     "src/main.cpp"
@@ -29,7 +33,9 @@ set(IMGUI_SRC_LIST
 
 # Source files
 add_executable(${PROJECT_NAME} ${SRC_LIST})
-target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+if (NOT _RELEASE_)
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif() 
 
 # Add GLM include files
 include_directories(lib/glm-1.0.1)
