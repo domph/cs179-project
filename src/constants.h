@@ -59,7 +59,7 @@
 
 
 /* Physics constants */
-#define DT 0.02f
+#define DT (1.0f / 60)
 #define G  9.81f
 
 #define POLY6_COEFF (315.0f / (64.0f * PI * P_H9))

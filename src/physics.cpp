@@ -228,12 +228,12 @@ void updateVel(ParticleSystem *psystem) {
    minimal bank conflicts. */
 void applyCollisionResponse(ParticleSystem *psystem) {
     for (size_t i = 0; i < psystem->num_particles; i++) {   
-        if (psystem->pos[i].x < SHAKE(psystem->t)) {
-            psystem->pos[i].x = 2*SHAKE(psystem->t) -psystem->pos[i].x;
+        if (psystem->pos[i].x < SHAKE(psystem->shake_t)) {
+            psystem->pos[i].x = 2*SHAKE(psystem->shake_t) -psystem->pos[i].x;
             psystem->vel[i].x *= -1;
         }
-        if (psystem->pos[i].x > psystem->box->xybound + SHAKE(psystem->t)) {
-            psystem->pos[i].x = 2*(psystem->box->xybound + SHAKE(psystem->t)) - psystem->pos[i].x;
+        if (psystem->pos[i].x > psystem->box->xybound + SHAKE(psystem->shake_t)) {
+            psystem->pos[i].x = 2*(psystem->box->xybound + SHAKE(psystem->shake_t)) - psystem->pos[i].x;
             psystem->vel[i].x *= -1;
         }
 
@@ -331,5 +331,6 @@ void update(ParticleSystem *psystem, bool shake) {
 
     savePrevPos(psystem);
 
-    if (shake) psystem->t += DT;
+    psystem->t += DT;
+    if (shake) psystem->shake_t += DT;
 }

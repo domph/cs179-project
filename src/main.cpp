@@ -400,6 +400,7 @@ void build_control_panel() {
         ImGui::Text("Particles: %zu", g_psystem->num_particles);
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
         ImGui::Text("Global time: %.2f s", g_timer.elapsed_s());
+        ImGui::Text("Physics time: %.2f s", g_psystem->t);
         ImGui::Spacing();
     }
 
