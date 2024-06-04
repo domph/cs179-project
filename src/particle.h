@@ -101,10 +101,10 @@ struct ParticleSystem {
         vel       = (glm::vec3 *) malloc(num_particles * sizeof(glm::vec3));
         nextvel   = (glm::vec3 *) malloc(num_particles * sizeof(glm::vec3));
         vorticity = (glm::vec3 *) malloc(num_particles * sizeof(glm::vec3));
-        lambda    = (float *)     calloc(num_particles, sizeof(float));
 
-        neighbors = (int *) malloc(num_particles * MAX_NEIGHBORS * sizeof(int));
-        num_neighbors = (int *) calloc(num_particles, sizeof(int));
+        lambda        = (float *) calloc(num_particles, sizeof(float));
+        neighbors     = (int *)   calloc(num_particles * MAX_NEIGHBORS, sizeof(int));
+        num_neighbors = (int *)   calloc(num_particles, sizeof(int));
         
         for (int i = 0; i < num_particles; i++) {
             pos[i] = glm::vec3(0.0f);
@@ -113,11 +113,6 @@ struct ParticleSystem {
             vel[i] = glm::vec3(0.0f);
             nextvel[i] = glm::vec3(0.0f);
             vorticity[i] = glm::vec3(0.0f);
-        }
-        for (int i = 0; i < MAX_NEIGHBORS; i++) {
-            for (int j = 0; j < num_particles; j++) {
-                neighbors[i*num_particles + j] = 0;
-            }
         }
 
         box = new Box(xybound, zbound);
@@ -128,28 +123,47 @@ struct ParticleSystem {
         prevpos[id] = p;
     }
 
-    void spawn_parcel() {
-        
-        // float step = 1.0f;
-        // int total = 0;
+    void spawn_parcel(float x, float y) {
+        int old_num_particles = num_particles;
+        for (float i = 0; i < 2 * PARCEL_R; i += PARCEL_STEP) {
+            for (float j = 0; j < 2 * PARCEL_R; j += PARCEL_STEP) {
+                for (int k = 0; k < 2 * PARCEL_R; k += PARCEL_STEP) {
+                    num_particles++;
+                }
+            }
+        }
 
-        // for (float i = 0; i < 2 * PARCEL_R; i += step) {
-        //     for (float j = 0; j < 2 * PARCEL_R; j += step) {
-        //         for (int k = 0; k < 2 * PARCEL_R; k += step) {
-        //             total++;
-        //         }
-        //     }
-        // }
-        // g_psystem = new ParticleSystem(XYBOUND, ZBOUND, total);
+        pos       = (glm::vec3 *) realloc(pos, num_particles * sizeof(glm::vec3));
+        deltapos  = (glm::vec3 *) realloc(deltapos, num_particles * sizeof(glm::vec3));
+        prevpos   = (glm::vec3 *) realloc(prevpos, num_particles * sizeof(glm::vec3));
+        vel       = (glm::vec3 *) realloc(vel, num_particles * sizeof(glm::vec3));
+        nextvel   = (glm::vec3 *) realloc(nextvel, num_particles * sizeof(glm::vec3));
+        vorticity = (glm::vec3 *) realloc(vorticity, num_particles * sizeof(glm::vec3));
 
-        // glm::vec3 p = glm::vec3(XYBOUND / 2 - PARCEL_R, XYBOUND / 2 - PARCEL_R, PARCEL_Z);
-        // int id = 0;
-        // for (float i = 0; i < 2 * PARCEL_R; i += step) {
-        //     for (float j = 0; j < 2 * PARCEL_R; j += step) {
-        //         for (int k = 0; k < 2 * PARCEL_R; k += step) {
-        //             g_psystem->init_particle(id++, glm::vec3(i, j, k) + p);
-        //         }
-        //     }
-        // }
+        free(lambda);
+        free(neighbors);
+        free(num_neighbors);
+
+        lambda        = (float *) calloc(num_particles, sizeof(float));
+        neighbors     = (int *)   calloc(num_particles * MAX_NEIGHBORS, sizeof(int));
+        num_neighbors = (int *)   calloc(num_particles, sizeof(int));
+
+        for (int i = old_num_particles; i < num_particles; i++) {
+            pos[i] = glm::vec3(0.0f);
+            deltapos[i] = glm::vec3(0.0f);
+            prevpos[i] = glm::vec3(0.0f);
+            vel[i] = glm::vec3(0.0f);
+            nextvel[i] = glm::vec3(0.0f);
+            vorticity[i] = glm::vec3(0.0f);
+        }
+
+        glm::vec3 p = glm::vec3(x, y, PARCEL_Z);
+        for (float i = 0; i < 2 * PARCEL_R; i += PARCEL_STEP) {
+            for (float j = 0; j < 2 * PARCEL_R; j += PARCEL_STEP) {
+                for (int k = 0; k < 2 * PARCEL_R; k += PARCEL_STEP) {
+                    init_particle(old_num_particles++, glm::vec3(i, j, k) + p);
+                }
+            }
+        }
     }
 };

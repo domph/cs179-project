@@ -41,7 +41,7 @@ ParticleSimulator *g_particle_simulator;
 glm::mat4 g_proj_matrix;
 GLint g_proj_matrix_loc;
 
-bool g_first_person = true;
+bool g_first_person = false;
 bool g_disable_physics = false;
 bool g_vsync = true;
 Camera g_camera(glm::vec3(-15, -15, 15), glm::vec3(0, 0, 1), 315, -12);
@@ -646,7 +646,7 @@ int main() {
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
         
-        glfwSetWindowTitle(window, (std::format("CS179 Project | FPS: {:.1f} | Particles: {:d}", ImGui::GetIO().Framerate, g_psystem->num_particles)).c_str());//std::to_string(ImGui::GetIO().Framerate)).c_str());
+        glfwSetWindowTitle(window, (std::format("CS179 Project | FPS: {:.1f} | Simulation Time: {:.2f} s | Particles: {:d}", ImGui::GetIO().Framerate, t, g_psystem->num_particles)).c_str());//std::to_string(ImGui::GetIO().Framerate)).c_str());
 #ifndef __APPLE__
         check_dpi(window);  // must be called before imgui::newframe()
 #endif
