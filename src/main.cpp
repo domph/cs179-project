@@ -405,13 +405,19 @@ void build_control_panel() {
 
     if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Checkbox("Physics", &g_enable_physics);
-        ImGui::Checkbox("Shaking", &g_shake);
+
+        if (ImGui::Checkbox("Shaking", &g_shake)) {
+            // SHAKING CHANGED
+            // check g_shake for new value
+        }
 #ifndef __APPLE__
-        ImGui::Checkbox("VSync", &g_vsync);
-        glfwSwapInterval(g_vsync ? 1 : 0);
+        if (ImGui::Checkbox("VSync", &g_vsync)) {
+            glfwSwapInterval(g_vsync ? 1 : 0);
+        }
 #endif
-        ImGui::SliderFloat("Particle size", &g_point_size, 0.1f, 10.0f);
-        glPointSize(g_point_size);
+        if (ImGui::SliderFloat("Particle size", &g_point_size, 0.1f, 10.0f)) {
+            glPointSize(g_point_size);
+        }
 
         if (ImGui::Button("Reset Container", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
             std::cout << "Resetting container" << std::endl;
@@ -609,9 +615,11 @@ int main() {
     ImGui::GetStyle() = new_imgui_style();
 
     // Render settings
+    glPointSize(g_point_size);
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glfwSwapInterval(g_vsync ? 1 : 0);
     if (g_enable_camera) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     } else {
