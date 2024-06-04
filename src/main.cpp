@@ -405,11 +405,8 @@ void build_control_panel() {
 
     if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Checkbox("Physics", &g_enable_physics);
-
-        if (ImGui::Checkbox("Shaking", &g_shake)) {
-            // SHAKING CHANGED
-            // check g_shake for new value
-        }
+        ImGui::Checkbox("Shaking", &g_shake);
+        
 #ifndef __APPLE__
         if (ImGui::Checkbox("VSync", &g_vsync)) {
             glfwSwapInterval(g_vsync ? 1 : 0);
