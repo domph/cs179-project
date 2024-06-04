@@ -22,12 +22,6 @@ glm::vec3 calcWspiky(glm::vec3 i, glm::vec3 j) {
     }
 }
 
-/* This function has been designed to be easily parallelized as a CUDA kernel
-   as each iteration of the outermost for-loop over the particles can be
-   computed independently. Moreover, the various particle properties are all
-   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
-   and so they can be accessed by GPU threads in a coalesced fashion with
-   minimal bank conflicts. */
 void calcPartition(ParticleSystem *psystem) {
     Box *box = psystem->box;
     box->clear_partitions();

@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <cstring>
 #include <glm/glm.hpp>
 #include <iostream>
 #include <vector>
@@ -65,7 +66,7 @@ struct Box {
     }
 
     void clear_partitions() {
-        for (size_t i = 0; i < total_partitions; i++) partition_sizes[i] = 0;
+        memset(partition_sizes, 0, total_partitions * sizeof(size_t));
     }
 };
 
