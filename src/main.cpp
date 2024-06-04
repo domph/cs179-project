@@ -41,7 +41,7 @@ ParticleSimulator *g_particle_simulator;
 glm::mat4 g_proj_matrix;
 GLint g_proj_matrix_loc;
 
-bool g_first_person = false;
+bool g_first_person = true;
 bool g_disable_physics = false;
 bool g_vsync = true;
 Camera g_camera(glm::vec3(-15, -15, 15), glm::vec3(0, 0, 1), 315, -12);
@@ -451,6 +451,19 @@ void build_control_panel() {
 
     if (ImGui::CollapsingHeader("Add Particles", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::TextWrapped("This allows you to add parcels of particles to the simulation at a desired location in the box.");
+    
+        static float pos_x;
+        static float pos_y;
+        ImGui::SeparatorText("Position");
+        ImGui::SliderFloat("X", &pos_x, 0.0f, 15.0f);
+        ImGui::SliderFloat("Y", &pos_y, 0.0f, 15.0f);
+        ImGui::Spacing();
+        ImGui::SeparatorText("");
+        ImGui::Spacing();
+
+        if (ImGui::Button("Add Parcel", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+            std::cout << "adding parcel to pos: " << pos_x << ", " << pos_y << std::endl;
+        }
     }
     ImGui::End();
 }
@@ -587,7 +600,21 @@ int main() {
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glfwSwapInterval(g_vsync ? 1 : 0);    // 0 = disable vsync | 1 = enable vsync
+    if (g_vsync) {
+        std::cout << "VSync enabled" << std::endl;
+        glfwSwapInterval(1);
+    } else {
+        std::cout << "VSync disabled" << std::endl;
+        glfwSwapInterval(0);
+    }
+    if (g_first_person) {
+        std::cout << "First person mode enabled" << std::endl;
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    } else {
+        std::cout << "First person mode disabled" << std::endl;
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        g_camera.stop();
+    }
 
     // Create shader program
     GLuint shader_program = compile_program();
