@@ -433,7 +433,7 @@ void build_control_panel() {
     ImGui::Spacing();
 
     if (ImGui::CollapsingHeader("Add Particles", ImGuiTreeNodeFlags_DefaultOpen)) {
-        ImGui::TextWrapped("This allows you to add parcels of particles to the simulation at a specified location.");
+        ImGui::TextWrapped("This allows you to add parcels of particles to the simulation at a desired location in the box.");
     }
     ImGui::End();
 }
@@ -506,7 +506,7 @@ int main() {
 
     // Set the OpenGL version to 4.6
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
