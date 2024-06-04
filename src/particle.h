@@ -107,12 +107,8 @@ struct ParticleSystem {
         num_neighbors = (int *)   calloc(num_particles, sizeof(int));
         
         for (int i = 0; i < num_particles; i++) {
-            pos[i] = glm::vec3(0.0f);
-            deltapos[i] = glm::vec3(0.0f);
             prevpos[i] = glm::vec3(0.0f);
             vel[i] = glm::vec3(0.0f);
-            nextvel[i] = glm::vec3(0.0f);
-            vorticity[i] = glm::vec3(0.0f);
         }
 
         box = new Box(xybound, zbound);

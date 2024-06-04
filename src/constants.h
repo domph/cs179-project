@@ -26,7 +26,9 @@
 #define INIT_STEP 0.5f
 #define INIT_KLEVELS 4
 
-#define PARCEL_R 2.5f
+#define PARCEL_R 3.2f
+#define PARCEL_MIN_XY (PARCEL_R)
+#define PARCEL_MAX_XY (XYBOUND - PARCEL_R)
 #define PARCEL_Z (ZBOUND / 2)
 #define PARCEL_STEP 1.0f
 
