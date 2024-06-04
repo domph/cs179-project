@@ -443,6 +443,7 @@ void build_control_panel() {
         ImGui::SliderFloat("Particle size", &point_size, 0.1f, 10.0f);
         if (ImGui::Button("Reset Container", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
             std::cout << "Resetting container" << std::endl;
+            g_psystem->respawn();
         }
         ImGui::Spacing();
         glPointSize(point_size);
@@ -673,17 +674,7 @@ int main() {
     glUniformMatrix4fv(g_proj_matrix_loc, 1, GL_FALSE, &view_proj_matrix[0][0]);
 
     // Initialize physics
-    int num_particles = 0;
-    for (float i = 0; i < XYBOUND; i += INIT_STEP)
-        for (float j = 0; j < XYBOUND; j += INIT_STEP)
-            for (int k = 0; k < i/INIT_KLEVELS; k++) num_particles++;
-
-    g_psystem = new ParticleSystem(XYBOUND, ZBOUND, num_particles);
-    int id = 0;
-    for (float i = 0; i < XYBOUND; i += INIT_STEP)
-        for (float j = 0; j < XYBOUND; j += INIT_STEP)
-            for (int k = 0; k < i/INIT_KLEVELS; k++)
-                g_psystem->init_particle(id++, glm::vec3(i, j, k*INIT_STEP));
+    g_psystem = new ParticleSystem(XYBOUND, ZBOUND);
 
     Timer frame_timer;
     float t = 0;

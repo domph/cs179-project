@@ -25,6 +25,14 @@
 
 #define INIT_STEP 0.64f
 #define INIT_KLEVELS 4
+#define PSYSTEM_INIT_SPAWN(CODE) \
+    for (float i = 0; i < XYBOUND; i += INIT_STEP) { \
+        for (float j = 0; j < XYBOUND; j += INIT_STEP) { \
+            for (int k = 0; k < i/INIT_KLEVELS; k++) { \
+                CODE; \
+            } \
+        } \
+    }
 
 #define PARCEL_R 1.6f
 #define PARCEL_STEP 1.0f
@@ -36,6 +44,15 @@
 #define PARCEL_DEFAULT_Z 16.0f
 #define PARCEL_MIN_Z (PARCEL_R)
 #define PARCEL_MAX_Z (ZBOUND - PARCEL_R)
+
+#define PSYSTEM_PARCEL_SPAWN(CODE) \
+    for (float i = 0; i < 2 * PARCEL_R; i += PARCEL_STEP) { \
+        for (float j = 0; j < 2 * PARCEL_R; j += PARCEL_STEP) { \
+            for (int k = 0; k < 2 * PARCEL_R; k += PARCEL_STEP) { \
+                CODE; \
+            } \
+        } \
+    }
 
 
 /* Physics constants */

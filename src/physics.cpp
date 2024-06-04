@@ -42,7 +42,7 @@ void kNearestNeighbors(ParticleSystem *psystem) {
         int z = (pi.z + EPS) / P_H;
 
         float dist, max;
-        int max_idx, num_neighbors = 0.0f;
+        int max_idx, num_neighbors = 0;
         glm::vec3 pj;
 
         for (int i = x - 1; i <= x + 1; i++) {
@@ -86,7 +86,7 @@ void kNearestNeighbors(ParticleSystem *psystem) {
 
 void applyBodyForces(ParticleSystem *psystem, float t) {
     (void) t;
-    
+
     for (int i = 0; i < psystem->num_particles; i++) {
         psystem->vel[i].z -= G * DT;
         // psystem->vel[i].x += SHAKE(t) * DT;
