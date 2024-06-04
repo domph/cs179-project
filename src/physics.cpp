@@ -60,8 +60,8 @@ void kNearestNeighbors(ParticleSystem *psystem) {
         for (int i = x - 1; i <= x + 1; i++) {
             for (int j = y - 1; j <= y + 1; j++) {
                 for (int k = z - 1; k <= z + 1; k++) {
-                    if (i>= box->x_partitions || j >= box->y_partitions ||
-                        k >= box->z_partitions || i < 0 || j < 0 || k < 0) continue;
+                    if (i < 0 || j < 0 || k < 0 || (size_t)i >= box->x_partitions ||
+                        (size_t)j >= box->y_partitions || (size_t)k >= box->z_partitions) continue;
                     
                     for (size_t l = 0; l < box->get_part_sz(i, j, k); l++) {
                         size_t neighbor = box->get_id_at(i, j, k, l);

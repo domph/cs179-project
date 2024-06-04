@@ -48,9 +48,9 @@ struct Box {
     }
 
     void add_particle(size_t id, glm::vec3 pos) {
-        size_t x = (pos.x + EPS) / P_H;
-        size_t y = (pos.y + EPS) / P_H;
-        size_t z = (pos.z + EPS) / P_H;
+        int x = (pos.x + EPS) / P_H;
+        int y = (pos.y + EPS) / P_H;
+        int z = (pos.z + EPS) / P_H;
 
         if (x >= 0 && (size_t)x < x_partitions &&
             y >= 0 && (size_t)y < y_partitions &&
@@ -104,7 +104,7 @@ struct ParticleSystem {
 
     ParticleSystem() {
         t = 0;
-        
+
         // Initial calculation of num_particles
         num_particles = 0;
         PSYSTEM_INIT_SPAWN(num_particles++);

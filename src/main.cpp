@@ -416,7 +416,7 @@ void build_control_panel() {
     ImGui::TextWrapped("This is a simulation of fluid particles in an invisible container. The color of the particles is determined by their speed; slower particles are bluer, and faster particles are redder.");
     if (ImGui::CollapsingHeader("Properties", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::SeparatorText("READ-ONLY");
-        ImGui::Text("Particles: %d", g_psystem->num_particles);
+        ImGui::Text("Particles: %zu", g_psystem->num_particles);
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
         ImGui::Text("Global time: %.2f s", g_timer.elapsed_s());
         
@@ -678,7 +678,6 @@ int main() {
     g_psystem = new ParticleSystem();
 
     Timer frame_timer;
-    float t = 0;
 
     // Main loop
     while(!glfwWindowShouldClose(window)) {
