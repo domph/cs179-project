@@ -39,11 +39,14 @@ constexpr int START_HEIGHT = 1200;
 ParticleSystem *g_psystem;
 ParticleSimulator *g_particle_simulator;
 glm::mat4 g_proj_matrix;
+GLint g_proj_matrix_loc;
 
 bool g_first_person = false;
 bool g_disable_physics = false;
 bool g_vsync = true;
 Camera g_camera(glm::vec3(-15, -15, 15), glm::vec3(0, 0, 1), 315, -12);
+
+constexpr float BASE_FONT_SIZE = 15.0f;
 
 //----------------------------------------
 // FUNCTIONS
@@ -312,7 +315,7 @@ void process_input(GLFWwindow *window, double dt) {
         g_camera.process_inputs(window, dt);
     }
     glm::mat4 view_proj_matrix = g_proj_matrix * g_camera.get_view();
-    glUniformMatrix4fv(2, 1, GL_FALSE, &view_proj_matrix[0][0]);
+    glUniformMatrix4fv(g_proj_matrix_loc, 1, GL_FALSE, &view_proj_matrix[0][0]);
 }
 
 ImGuiStyle new_imgui_style() {
@@ -492,7 +495,7 @@ void check_dpi(GLFWwindow *window) {
 
             io.Fonts->Clear();
 
-            float font_size = 15.0f * xscale;
+            float font_size = BASE_FONT_SIZE * xscale;
             ImFontConfig font_cfg;
             font_cfg.FontDataOwnedByAtlas = false;
             io.Fonts->AddFontFromMemoryTTF(proggyvector_regular_ttf, proggyvector_regular_ttf_len, font_size, &font_cfg);
@@ -561,10 +564,21 @@ int main() {
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    ImGui::GetStyle() = new_imgui_style();
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);          // install_callback=true will install GLFW callbacks and chain to existing ones
     ImGui_ImplOpenGL3_Init();
+
+#ifdef __APPLE__
+// https://github.com/ocornut/imgui/issues/5301#issuecomment-1122067363
+    io.Fonts->Clear();
+
+    ImFontConfig font_cfg;
+    font_cfg.FontDataOwnedByAtlas = false;
+    io.Fonts->AddFontFromMemoryTTF(proggyvector_regular_ttf, proggyvector_regular_ttf_len, BASE_FONT_SIZE * 2, &font_cfg);
+    io.FontGlobalScale = 0.5f;
+    ImGui_ImplOpenGL3_CreateFontsTexture();
+#endif
+    ImGui::GetStyle() = new_imgui_style();
 
     // Render settings
     glPointSize(5.0f);
@@ -579,7 +593,8 @@ int main() {
 
     // Initial camera
     glm::mat4 view_proj_matrix = g_proj_matrix * g_camera.get_view();
-    glUniformMatrix4fv(2, 1, GL_FALSE, &view_proj_matrix[0][0]);
+    g_proj_matrix_loc = glGetUniformLocation(shader_program, "proj_view_matrix");
+    glUniformMatrix4fv(g_proj_matrix_loc, 1, GL_FALSE, &view_proj_matrix[0][0]);
 
     // Initialize physics
     float xybound = 15.0f;
@@ -615,8 +630,9 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
         
         glfwSetWindowTitle(window, (std::format("CS179 Project | FPS: {:.1f}", ImGui::GetIO().Framerate)).c_str());//std::to_string(ImGui::GetIO().Framerate)).c_str());
+#ifdef WIN32
         check_dpi(window);  // must be called before imgui::newframe()
-
+#endif
         // User input
         double dt = frame_timer.elapsed_s();
         frame_timer.reset();
