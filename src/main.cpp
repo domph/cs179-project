@@ -592,6 +592,7 @@ int main() {
     }
 
     Timer frame_timer;
+    float t = 0;
 
     // Main loop
     while(!glfwWindowShouldClose(window)) {
@@ -608,7 +609,8 @@ int main() {
 
         // Physics
         if (!g_disable_physics) {
-            update(g_psystem);
+            update(g_psystem, t);
+            t += DT;
         }
         
         // Imgui

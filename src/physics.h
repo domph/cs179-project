@@ -24,7 +24,7 @@ void calcPartition(ParticleSystem *particles);
 void kNearestNeighbors(ParticleSystem *particles);
 
 /* Applies body forces to each particle - Algorithm 1 Line 2*/
-void applyBodyForces(ParticleSystem *particles);
+void applyBodyForces(ParticleSystem *particles, float t);
 
 /* Calculates the regularization parameter lambda for every particle from
    Macklin & Muller (2013), Eq (11) - Algorithm 1 Line 10 */
@@ -63,4 +63,4 @@ void calcVorticityViscosity(ParticleSystem *particles);
 void applyVorticityCorrection(ParticleSystem *particles);
 
 /* Perform a physics-based update to the particle system over one timestep. */
-void update(ParticleSystem *particles);
+void update(ParticleSystem *particles, float t);
