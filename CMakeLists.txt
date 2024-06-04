@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(cs179-project)
 
 ## FOR SUBMISSION
-set(_RELEASE_ OFF)
+set(_RELEASE_ ON)
 
 # Specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -33,7 +33,9 @@ set(IMGUI_SRC_LIST
 
 # Source files
 add_executable(${PROJECT_NAME} ${SRC_LIST})
-if (NOT _RELEASE_)
+if (_RELEASE_)
+    #target_compile_options(${PROJECT_NAME} PRIVATE -static)
+elseif()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
 endif() 
 
