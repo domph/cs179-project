@@ -119,7 +119,7 @@ struct ParticleSystem {
         prevpos[id] = p;
     }
 
-    void spawn_parcel(float x, float y) {
+    void spawn_parcel(float x, float y, float z) {
         int old_num_particles = num_particles;
         for (float i = 0; i < 2 * PARCEL_R; i += PARCEL_STEP) {
             for (float j = 0; j < 2 * PARCEL_R; j += PARCEL_STEP) {
@@ -139,24 +139,17 @@ struct ParticleSystem {
         free(lambda);
         free(neighbors);
         free(num_neighbors);
-
         lambda        = (float *) calloc(num_particles, sizeof(float));
         neighbors     = (int *)   calloc(num_particles * MAX_NEIGHBORS, sizeof(int));
         num_neighbors = (int *)   calloc(num_particles, sizeof(int));
 
-        for (int i = old_num_particles; i < num_particles; i++) {
-            pos[i] = glm::vec3(0.0f);
-            deltapos[i] = glm::vec3(0.0f);
-            prevpos[i] = glm::vec3(0.0f);
-            vel[i] = glm::vec3(0.0f);
-            nextvel[i] = glm::vec3(0.0f);
-            vorticity[i] = glm::vec3(0.0f);
-        }
-
-        glm::vec3 p = glm::vec3(x - PARCEL_R, y - PARCEL_R, PARCEL_Z);
+        glm::vec3 p = glm::vec3(x - PARCEL_R, y - PARCEL_R, z - PARCEL_R);
         for (float i = 0; i < 2 * PARCEL_R; i += PARCEL_STEP) {
             for (float j = 0; j < 2 * PARCEL_R; j += PARCEL_STEP) {
                 for (int k = 0; k < 2 * PARCEL_R; k += PARCEL_STEP) {
+                    prevpos[old_num_particles] = glm::vec3(0.0f);
+                    vel[old_num_particles] = glm::vec3(0.0f);
+
                     init_particle(old_num_particles++, glm::vec3(i, j, k) + p);
                 }
             }
