@@ -54,7 +54,7 @@
         } \
     }
 
-#define SHAKE(t) (8.0f * glm::sin(1.5f * t)) 
+#define SHAKE(t) (8.0f * glm::sin(1.5f * t))
 
 
 /* Physics constants */
