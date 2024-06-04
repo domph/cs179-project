@@ -11,6 +11,8 @@ public:
     void process_inputs(GLFWwindow *window, float dt);
     void stop();
     glm::mat4 get_view() { return view; }
+    const glm::vec3 &get_position() const { return position; }
+    const glm::vec3 &get_view_dir() const { return view_dir; }
 private:
     glm::vec3 position;
     glm::vec3 view_dir;

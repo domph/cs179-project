@@ -40,6 +40,7 @@ ParticleSystem *g_psystem;
 ParticleSimulator *g_particle_simulator;
 glm::mat4 g_proj_matrix;
 GLint g_proj_matrix_loc;
+Timer g_timer;
 
 bool g_first_person = false;
 bool g_disable_physics = false;
@@ -403,6 +404,26 @@ namespace ImGui {
 void build_control_panel() {
     ImGui::Begin("Control Panel");
     ImGui::TextWrapped("This is a simulation of fluid particles in an invisible container.");
+    if (ImGui::CollapsingHeader("Properties", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::SeparatorText("System");
+        ImGui::Text("Particles: %d", g_psystem->num_particles);
+        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+        ImGui::Text("Global time: %.2f s", g_timer.elapsed_s());
+        ImGui::Spacing();
+
+        ImGui::SeparatorText("Controls");
+        ImGui::Text("Camera control: %s", g_first_person ? "ON" : "OFF");
+        ImGui::Text("Physics: %s", g_disable_physics ? "OFF" : "ON");
+#ifndef __APPLE__
+        ImGui::Text("VSync: %s", g_vsync ? "ON" : "OFF");
+#endif
+        ImGui::Spacing();
+
+        ImGui::SeparatorText("Camera");
+        ImGui::Text("Position: (%.2f, %.2f, %.2f)", g_camera.get_position().x, g_camera.get_position().y, g_camera.get_position().z);
+        ImGui::Text("View direction: (%.2f, %.2f, %.2f)", g_camera.get_view_dir().x, g_camera.get_view_dir().y, g_camera.get_view_dir().z);
+        ImGui::Spacing();
+    }
     if (ImGui::CollapsingHeader("Controls", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::SeparatorText("Camera Controls");
 
@@ -446,24 +467,26 @@ void build_control_panel() {
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Toggle VSync");
 #endif
+        ImGui::Spacing();
     }
-    ImGui::Spacing();
 
     if (ImGui::CollapsingHeader("Add Particles", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::TextWrapped("This allows you to add parcels of particles to the simulation at a desired location in the box.");
     
-        static float pos_x = PARCEL_MIN_XY;
-        static float pos_y = PARCEL_MIN_XY;
+        static float pos_x = PARCEL_DEFAULT_XY;
+        static float pos_y = PARCEL_DEFAULT_XY;
+        static float pos_z = PARCEL_DEFAULT_Z;
         ImGui::SeparatorText("Position");
         ImGui::SliderFloat("X", &pos_x, PARCEL_MIN_XY, PARCEL_MAX_XY);
         ImGui::SliderFloat("Y", &pos_y, PARCEL_MIN_XY, PARCEL_MAX_XY);
+        ImGui::SliderFloat("Z", &pos_z, PARCEL_MIN_Z, PARCEL_MAX_Z);
         ImGui::Spacing();
-        ImGui::SeparatorText("");
+        // ImGui::SeparatorText("");
         ImGui::Spacing();
 
         if (ImGui::Button("Add Parcel", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
             std::cout << "Adding parcel to pos: " << pos_x << ", " << pos_y << std::endl;
-            g_psystem->spawn_parcel(pos_x, pos_y);
+            g_psystem->spawn_parcel(pos_x, pos_y, pos_z);
         }
     }
     ImGui::End();
@@ -647,7 +670,7 @@ int main() {
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
         
-        glfwSetWindowTitle(window, (std::format("CS179 Project | FPS: {:.1f} | Simulation Time: {:.2f} s | Particles: {:d}", ImGui::GetIO().Framerate, t, g_psystem->num_particles)).c_str());//std::to_string(ImGui::GetIO().Framerate)).c_str());
+        glfwSetWindowTitle(window, "CS179 Project");
 #ifndef __APPLE__
         check_dpi(window);  // must be called before imgui::newframe()
 #endif
