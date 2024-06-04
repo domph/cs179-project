@@ -452,17 +452,18 @@ void build_control_panel() {
     if (ImGui::CollapsingHeader("Add Particles", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::TextWrapped("This allows you to add parcels of particles to the simulation at a desired location in the box.");
     
-        static float pos_x;
-        static float pos_y;
+        static float pos_x = PARCEL_MIN_XY;
+        static float pos_y = PARCEL_MIN_XY;
         ImGui::SeparatorText("Position");
-        ImGui::SliderFloat("X", &pos_x, 0.0f, 15.0f);
-        ImGui::SliderFloat("Y", &pos_y, 0.0f, 15.0f);
+        ImGui::SliderFloat("X", &pos_x, PARCEL_MIN_XY, PARCEL_MAX_XY);
+        ImGui::SliderFloat("Y", &pos_y, PARCEL_MIN_XY, PARCEL_MAX_XY);
         ImGui::Spacing();
         ImGui::SeparatorText("");
         ImGui::Spacing();
 
         if (ImGui::Button("Add Parcel", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-            std::cout << "adding parcel to pos: " << pos_x << ", " << pos_y << std::endl;
+            std::cout << "Adding parcel to pos: " << pos_x << ", " << pos_y << std::endl;
+            g_psystem->spawn_parcel(pos_x, pos_y);
         }
     }
     ImGui::End();
