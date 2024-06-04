@@ -626,28 +626,17 @@ int main() {
     glUniformMatrix4fv(g_proj_matrix_loc, 1, GL_FALSE, &view_proj_matrix[0][0]);
 
     // Initialize physics
-    // float xystep  = 0.5f;
-    // int klevels = 4;
+    int num_particles = 0;
+    for (float i = 0; i < XYBOUND; i += INIT_STEP)
+        for (float j = 0; j < XYBOUND; j += INIT_STEP)
+            for (int k = 0; k < i/INIT_KLEVELS; k++) num_particles++;
 
-    int total = 0;
-    // for (float i = 0; i < XYBOUND; i += xystep) {
-    //     for (float j = 0; j < XYBOUND; j += xystep) {
-    //         for (int k = 0; k < i/klevels; k++) {
-    //             total++;
-    //         }
-    //     }
-    // }
-    // printf("Number of particles: %d\n", total);
-
-    g_psystem = new ParticleSystem(XYBOUND, ZBOUND, total);
-    // int id = 0;
-    // for (float i = 0; i < XYBOUND; i += xystep) {
-    //     for (float j = 0; j < XYBOUND; j += xystep) {
-    //         for (int k = 0; k < i/klevels; k++) {
-    //             g_psystem->init_particle(id++, glm::vec3(i, j, k*xystep));
-    //         }
-    //     }
-    // }
+    g_psystem = new ParticleSystem(XYBOUND, ZBOUND, num_particles);
+    int id = 0;
+    for (float i = 0; i < XYBOUND; i += INIT_STEP)
+        for (float j = 0; j < XYBOUND; j += INIT_STEP)
+            for (int k = 0; k < i/INIT_KLEVELS; k++)
+                g_psystem->init_particle(id++, glm::vec3(i, j, k*INIT_STEP));
 
     Timer frame_timer;
     float t = 0;
@@ -657,7 +646,7 @@ int main() {
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
         
-        glfwSetWindowTitle(window, (std::format("CS179 Project | FPS: {:.1f}", ImGui::GetIO().Framerate)).c_str());//std::to_string(ImGui::GetIO().Framerate)).c_str());
+        glfwSetWindowTitle(window, (std::format("CS179 Project | FPS: {:.1f} | Particles: {:d}", ImGui::GetIO().Framerate, g_psystem->num_particles)).c_str());//std::to_string(ImGui::GetIO().Framerate)).c_str());
 #ifdef WIN32
         check_dpi(window);  // must be called before imgui::newframe()
 #endif
