@@ -65,3 +65,21 @@ This will generate an executable called `cs179-project.exe` inside the `build` f
 
 ### MacOS
 
+#### Tool Setup
+
+The simplest way to get all the necessary tools is to install Homebrew, since that installs the Xcode command line tools. The installation steps for Homebrew are on [https://brew.sh/](https://brew.sh/).
+
+Then, `cmake` can be installed via the command `brew install cmake`. At this point, all the necessary tools should be installed.
+
+#### Compile the program
+
+To compile the program on MacOS, run the following commands in the root directory:
+
+```
+mkdir build
+cd build
+cmake -G "Unix Makefiles" ..
+make
+```
+
+This will generate an executable called `cs179-project` inside the `build` folder.
