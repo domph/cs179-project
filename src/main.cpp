@@ -44,6 +44,7 @@ Timer g_timer;
 
 bool g_first_person = false;
 bool g_disable_physics = false;
+bool g_shake = false;
 bool g_vsync = true;
 Camera g_camera(glm::vec3(-15, -15, 15), glm::vec3(0, 0, 1), 315, -12);
 
@@ -695,8 +696,7 @@ int main() {
 
         // Physics
         if (!g_disable_physics) {
-            update(g_psystem, t);
-            t += DT;
+            update(g_psystem, g_shake);
         }
         
         // Imgui

@@ -71,6 +71,7 @@ struct Box {
 
 struct ParticleSystem {
     size_t num_particles;
+    float t;
 
     glm::vec3 *pos;
     glm::vec3 *deltapos;
@@ -102,6 +103,8 @@ struct ParticleSystem {
     }
 
     ParticleSystem() {
+        t = 0;
+        
         // Initial calculation of num_particles
         num_particles = 0;
         PSYSTEM_INIT_SPAWN(num_particles++);

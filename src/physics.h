@@ -22,7 +22,7 @@ void calcPartition(ParticleSystem *particles);
 void kNearestNeighbors(ParticleSystem *particles);
 
 /* Applies body forces to each particle - Algorithm 1 Line 2*/
-void applyBodyForces(ParticleSystem *particles, float t);
+void applyBodyForces(ParticleSystem *particles);
 
 /* Calculates the regularization parameter lambda for every particle from
    Macklin & Muller (2013), Eq (11) - Algorithm 1 Line 10 */
@@ -49,7 +49,7 @@ void updateVel(ParticleSystem *particles);
 
 /* Apply a collision response between every particle in the particle
    system using an elastic model - Algorithm 1 Line 14 */
-void applyCollisionResponse(ParticleSystem *particles);
+void applyCollisionResponse(ParticleSystem *particles, bool shake);
 
 /* Calculate the vorticity corrective force from Macklin & Muller (2013).
    Calculate XSPH viscosity and update the next velocity for each particle.
@@ -61,4 +61,4 @@ void calcVorticityViscosity(ParticleSystem *particles);
 void applyVorticityCorrection(ParticleSystem *particles);
 
 /* Perform a physics-based update to the particle system over one timestep. */
-void update(ParticleSystem *particles, float t);
+void update(ParticleSystem *particles, bool shake);

@@ -102,12 +102,9 @@ void kNearestNeighbors(ParticleSystem *psystem) {
    contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
    and so they can be accessed by GPU threads in a coalesced fashion with
    minimal bank conflicts. */
-void applyBodyForces(ParticleSystem *psystem, float t) {
-    (void) t;
-
+void applyBodyForces(ParticleSystem *psystem) {
     for (size_t i = 0; i < psystem->num_particles; i++) {
         psystem->vel[i].z -= G * DT;
-        // psystem->vel[i].x += SHAKE(t) * DT;
         psystem->pos[i] = psystem->prevpos[i] + DT * psystem->vel[i];
     }
 }
@@ -236,14 +233,14 @@ void updateVel(ParticleSystem *psystem) {
    contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
    and so they can be accessed by GPU threads in a coalesced fashion with
    minimal bank conflicts. */
-void applyCollisionResponse(ParticleSystem *psystem) {
+void applyCollisionResponse(ParticleSystem *psystem, bool shake) {
     for (size_t i = 0; i < psystem->num_particles; i++) {   
-        if (psystem->pos[i].x < 0) {
-            psystem->pos[i].x *= -1;
+        if (psystem->pos[i].x < SHAKE(psystem->t)) {
+            psystem->pos[i].x = 2*SHAKE(psystem->t) -psystem->pos[i].x;
             psystem->vel[i].x *= -1;
         }
-        if (psystem->pos[i].x > psystem->box->xybound) {
-            psystem->pos[i].x = 2*psystem->box->xybound - psystem->pos[i].x;
+        if (psystem->pos[i].x > psystem->box->xybound + SHAKE(psystem->t)) {
+            psystem->pos[i].x = 2*(psystem->box->xybound+SHAKE(psystem->t)) - psystem->pos[i].x;
             psystem->vel[i].x *= -1;
         }
 
@@ -322,8 +319,8 @@ void applyVorticityCorrection(ParticleSystem *psystem) {
     }
 }
 
-void update(ParticleSystem *psystem, float t) {
-    applyBodyForces(psystem, t);
+void update(ParticleSystem *psystem, bool shake) {
+    applyBodyForces(psystem);
     calcPartition(psystem);
     kNearestNeighbors(psystem);
 
@@ -331,7 +328,7 @@ void update(ParticleSystem *psystem, float t) {
         calcLambda(psystem);
         calcDeltaPos(psystem);
         updatePos(psystem);
-        applyCollisionResponse(psystem);
+        applyCollisionResponse(psystem, shake);
     }
 
     calcVel(psystem);
@@ -340,4 +337,6 @@ void update(ParticleSystem *psystem, float t) {
     updateVel(psystem);
 
     savePrevPos(psystem);
+
+    psystem->t += DT;
 }
