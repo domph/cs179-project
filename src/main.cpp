@@ -186,7 +186,11 @@ GLuint compile_program() {
     glAttachShader(shader_program, fragment_shader);
     if (glGetError() != GL_NO_ERROR) {
         throw std::runtime_error(std::string{ "Error linking: " }
+#ifndef __APPLE__
             + reinterpret_cast<const char *>(gluErrorString(glGetError())));
+#else
+            + std::to_string(glGetError()));
+#endif
     }
 
     glLinkProgram(shader_program);
@@ -210,6 +214,7 @@ GLuint compile_program() {
     return shader_program;
 }
 
+#ifndef __APPLE__
 void debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
     const GLchar* message, const void* userParam) {
     (void)id;
@@ -258,6 +263,7 @@ void debug_message_callback(GLenum source, GLenum type, GLuint id, GLenum severi
         << " | Severity: " << severity_str
         << " | Message: " << message << std::endl;
 }
+#endif
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     (void)window;
@@ -525,12 +531,14 @@ int main() {
     }
     glfwMakeContextCurrent(window);
 
+#ifndef __APPLE__
     // Initialize GLEW
     if (glewInit() != GLEW_OK) {
         std::cerr << "Failed to initialize GLEW" << std::endl;
         glfwTerminate();
         return -1;
     }
+#endif
 
     // Print some specs
     std::cout << "OpenGL Vendor: " << glGetString(GL_VENDOR) << std::endl;
@@ -541,7 +549,9 @@ int main() {
     // Set callbacks callback
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);  
     glfwSetKeyCallback(window, key_callback);
+#ifndef __APPLE__
     glDebugMessageCallback(debug_message_callback, nullptr);
+#endif
     glViewport(0, 0, START_WIDTH, START_HEIGHT);
 
     // Initialize IMGUI
