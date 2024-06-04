@@ -1,6 +1,7 @@
 ﻿#define GLM_ENABLE_EXPERIMENTAL
 
 #include "physics.h"
+#include "timer.h"
 #include <cmath>
 #include <glm/gtx/norm.hpp>
 
@@ -315,7 +316,10 @@ void applyVorticityCorrection(ParticleSystem *psystem) {
 
 void update(ParticleSystem *psystem, bool shake) {
     applyBodyForces(psystem);
+    Timer timer;
     calcPartition(psystem);
+    std::cout << "partition time: " << timer.elapsed_ms() << " ms" << std::endl;
+    timer.reset();
     kNearestNeighbors(psystem);
 
     for (size_t i = 0; i < SOLVER_ITERATIONS; i++) {
@@ -331,6 +335,7 @@ void update(ParticleSystem *psystem, bool shake) {
     updateVel(psystem);
 
     savePrevPos(psystem);
+    std::cout << "everything else: " << timer.elapsed_ms() << " ms" << std::endl;
 
     psystem->t += DT;
 }
