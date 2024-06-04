@@ -674,7 +674,7 @@ int main() {
     glUniformMatrix4fv(g_proj_matrix_loc, 1, GL_FALSE, &view_proj_matrix[0][0]);
 
     // Initialize physics
-    g_psystem = new ParticleSystem(XYBOUND, ZBOUND);
+    g_psystem = new ParticleSystem();
 
     Timer frame_timer;
     float t = 0;

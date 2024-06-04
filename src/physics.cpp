@@ -22,11 +22,17 @@ glm::vec3 calcWspiky(glm::vec3 i, glm::vec3 j) {
     }
 }
 
+/* This function has been designed to be easily parallelized as a CUDA kernel
+   as each iteration of the outermost for-loop over the particles can be
+   computed independently. Moreover, the various particle properties are all
+   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
+   and so they can be accessed by GPU threads in a coalesced fashion with
+   minimal bank conflicts. */
 void calcPartition(ParticleSystem *psystem) {
     Box *box = psystem->box;
     box->clear_partitions();
 
-    for (int i = 0; i < psystem->num_particles; i++) {
+    for (size_t i = 0; i < psystem->num_particles; i++) {
         box->add_particle(i, psystem->pos[i]);
     }
 }
@@ -39,7 +45,7 @@ void calcPartition(ParticleSystem *psystem) {
    minimal bank conflicts. */
 void kNearestNeighbors(ParticleSystem *psystem) {
     Box *box = psystem->box;
-    for (int p = 0; p < psystem->num_particles; p++) {
+    for (size_t p = 0; p < psystem->num_particles; p++) {
         glm::vec3 pi = psystem->pos[p];
 
         // Discretize particle positions into a 3D grid of size P_H
@@ -48,7 +54,7 @@ void kNearestNeighbors(ParticleSystem *psystem) {
         int z = (pi.z + EPS) / P_H;
 
         float dist, max;
-        int max_idx, num_neighbors = 0;
+        size_t max_idx, num_neighbors = 0;
         glm::vec3 pj;
 
         for (int i = x - 1; i <= x + 1; i++) {
@@ -57,8 +63,8 @@ void kNearestNeighbors(ParticleSystem *psystem) {
                     if (i>= box->x_partitions || j >= box->y_partitions ||
                         k >= box->z_partitions || i < 0 || j < 0 || k < 0) continue;
                     
-                    for (int neighbor: box->partitions[i][j][k]) {
-
+                    for (size_t l = 0; l < box->get_part_sz(i, j, k); l++) {
+                        size_t neighbor = box->get_id_at(i, j, k, l);
                         if (neighbor == p) continue;
                         pj = psystem->pos[neighbor];
 
@@ -70,8 +76,8 @@ void kNearestNeighbors(ParticleSystem *psystem) {
                             }
                         } else {
                             max = 0.0f;
-                            for (int l = 0; l < num_neighbors; l++) {
-                                int neighbor_idx = psystem->neighbors[p + l * psystem->num_particles];
+                            for (size_t l = 0; l < num_neighbors; l++) {
+                                size_t neighbor_idx = psystem->neighbors[p + l * psystem->num_particles];
                                 float d = glm::distance(pi, psystem->pos[neighbor_idx]);
                                 if (d > max) {
                                     max = d;
@@ -99,7 +105,7 @@ void kNearestNeighbors(ParticleSystem *psystem) {
 void applyBodyForces(ParticleSystem *psystem, float t) {
     (void) t;
 
-    for (int i = 0; i < psystem->num_particles; i++) {
+    for (size_t i = 0; i < psystem->num_particles; i++) {
         psystem->vel[i].z -= G * DT;
         // psystem->vel[i].x += SHAKE(t) * DT;
         psystem->pos[i] = psystem->prevpos[i] + DT * psystem->vel[i];
@@ -113,7 +119,7 @@ void applyBodyForces(ParticleSystem *psystem, float t) {
    and so they can be accessed by GPU threads in a coalesced fashion with
    minimal bank conflicts. */
 void calcLambda(ParticleSystem *psystem) {
-    for (int i = 0; i < psystem->num_particles; i++) {
+    for (size_t i = 0; i < psystem->num_particles; i++) {
         glm::vec3 pi = psystem->pos[i];
 
         glm::vec3 gradPjCi;  // Temporary store for calculated gradients
@@ -124,8 +130,8 @@ void calcLambda(ParticleSystem *psystem) {
         glm::vec3 sumGradPiCi = glm::vec3(0.0f);
         glm::vec3 pj;
 
-        for (int j = 0; j < psystem->num_neighbors[i]; j++) {
-            int neighbor_idx = psystem->neighbors[i + j * psystem->num_particles];
+        for (size_t j = 0; j < psystem->num_neighbors[i]; j++) {
+            size_t neighbor_idx = psystem->neighbors[i + j * psystem->num_particles];
             pj = psystem->pos[neighbor_idx];
 
             rhoI += calcWpoly6(pi, pj);  // eq (1)
@@ -150,7 +156,7 @@ void calcLambda(ParticleSystem *psystem) {
    and so they can be accessed by GPU threads in a coalesced fashion with
    minimal bank conflicts. */
 void calcDeltaPos(ParticleSystem *psystem) {
-    for (int i = 0; i < psystem->num_particles; i++) {
+    for (size_t i = 0; i < psystem->num_particles; i++) {
         glm::vec3 pi = psystem->pos[i];
         float lambda_i = psystem->lambda[i];
 
@@ -161,8 +167,8 @@ void calcDeltaPos(ParticleSystem *psystem) {
         glm::vec3 pj;
         float sCorrBase, sCorr, lambda_j;
 
-        for (int j = 0; j < psystem->num_neighbors[i]; j++) {
-            int neighbor_idx = psystem->neighbors[i + j * psystem->num_particles];
+        for (size_t j = 0; j < psystem->num_neighbors[i]; j++) {
+            size_t neighbor_idx = psystem->neighbors[i + j * psystem->num_particles];
             pj = psystem->pos[neighbor_idx];
             lambda_j = psystem->lambda[neighbor_idx];
 
@@ -182,7 +188,7 @@ void calcDeltaPos(ParticleSystem *psystem) {
    and so they can be accessed by GPU threads in a coalesced fashion with
    minimal bank conflicts. */
 void updatePos(ParticleSystem *psystem) {
-    for (int i = 0; i < psystem->num_particles; i++) {
+    for (size_t i = 0; i < psystem->num_particles; i++) {
         psystem->pos[i] += psystem->deltapos[i];
     }
 }
@@ -194,7 +200,7 @@ void updatePos(ParticleSystem *psystem) {
    and so they can be accessed by GPU threads in a coalesced fashion with
    minimal bank conflicts. */
 void savePrevPos(ParticleSystem *psystem) {
-    for (int i = 0; i < psystem->num_particles; i++) {
+    for (size_t i = 0; i < psystem->num_particles; i++) {
         psystem->prevpos[i] = psystem->pos[i];
     }
 }
@@ -206,7 +212,7 @@ void savePrevPos(ParticleSystem *psystem) {
    and so they can be accessed by GPU threads in a coalesced fashion with
    minimal bank conflicts. */
 void calcVel(ParticleSystem *psystem) {
-    for (int i = 0; i < psystem->num_particles; i++) {
+    for (size_t i = 0; i < psystem->num_particles; i++) {
         psystem->vel[i] = (psystem->pos[i] - psystem->prevpos[i]) / DT;
         psystem->nextvel[i] = psystem->vel[i];
     }
@@ -219,7 +225,7 @@ void calcVel(ParticleSystem *psystem) {
    and so they can be accessed by GPU threads in a coalesced fashion with
    minimal bank conflicts. */
 void updateVel(ParticleSystem *psystem) {
-    for (int i = 0; i < psystem->num_particles; i++) {
+    for (size_t i = 0; i < psystem->num_particles; i++) {
         psystem->vel[i] = psystem->nextvel[i];
     }
 }
@@ -231,7 +237,7 @@ void updateVel(ParticleSystem *psystem) {
    and so they can be accessed by GPU threads in a coalesced fashion with
    minimal bank conflicts. */
 void applyCollisionResponse(ParticleSystem *psystem) {
-    for (int i = 0; i < psystem->num_particles; i++) {   
+    for (size_t i = 0; i < psystem->num_particles; i++) {   
         if (psystem->pos[i].x < 0) {
             psystem->pos[i].x *= -1;
             psystem->vel[i].x *= -1;
@@ -268,7 +274,7 @@ void applyCollisionResponse(ParticleSystem *psystem) {
    and so they can be accessed by GPU threads in a coalesced fashion with
    minimal bank conflicts. */
 void calcVorticityViscosity(ParticleSystem *psystem) {
-    for (int i = 0; i < psystem->num_particles; i++) {
+    for (size_t i = 0; i < psystem->num_particles; i++) {
         glm::vec3 pi = psystem->pos[i];
         glm::vec3 vi = psystem->vel[i];
 
@@ -276,8 +282,8 @@ void calcVorticityViscosity(ParticleSystem *psystem) {
         glm::vec3 wi    = glm::vec3(0.0f);
         glm::vec3 vXSPH = glm::vec3(0.0f);
 
-        for (int j = 0; j < psystem->num_neighbors[i]; j++) {
-            int neighbor_idx = psystem->neighbors[i + j * psystem->num_particles];
+        for (size_t j = 0; j < psystem->num_neighbors[i]; j++) {
+            size_t neighbor_idx = psystem->neighbors[i + j * psystem->num_particles];
             pj = psystem->pos[neighbor_idx];
             vij = psystem->vel[neighbor_idx] - vi;
 
@@ -296,13 +302,13 @@ void calcVorticityViscosity(ParticleSystem *psystem) {
    and so they can be accessed by GPU threads in a coalesced fashion with
    minimal bank conflicts. */
 void applyVorticityCorrection(ParticleSystem *psystem) {
-    for (int i = 0; i < psystem->num_particles; i++) {
+    for (size_t i = 0; i < psystem->num_particles; i++) {
         glm::vec3 pi = psystem->pos[i];
         glm::vec3 gradwi = glm::vec3(0.0f);
         glm::vec3 pj, wj;
 
-        for (int j = 0; j < psystem->num_neighbors[i]; j++) {
-            int neighbor_idx = psystem->neighbors[i + j * psystem->num_particles];
+        for (size_t j = 0; j < psystem->num_neighbors[i]; j++) {
+            size_t neighbor_idx = psystem->neighbors[i + j * psystem->num_particles];
             pj = psystem->pos[neighbor_idx];
             wj = psystem->vorticity[neighbor_idx];
 
@@ -321,7 +327,7 @@ void update(ParticleSystem *psystem, float t) {
     calcPartition(psystem);
     kNearestNeighbors(psystem);
 
-    for (int i = 0; i < SOLVER_ITERATIONS; i++) {
+    for (size_t i = 0; i < SOLVER_ITERATIONS; i++) {
         calcLambda(psystem);
         calcDeltaPos(psystem);
         updatePos(psystem);
