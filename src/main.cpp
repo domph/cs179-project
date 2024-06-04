@@ -42,14 +42,14 @@ glm::mat4 g_proj_matrix;
 GLint g_proj_matrix_loc;
 Timer g_timer;
 
-bool g_first_person = false;
-bool g_disable_physics = false;
+bool g_enable_camera = false;
+bool g_enable_physics = true;
 bool g_shake = false;
 bool g_vsync = true;
+float g_point_size = 4.0f;
 Camera g_camera(glm::vec3(-15, -15, 15), glm::vec3(0, 0, 1), 315, -12);
 
 constexpr float BASE_FONT_SIZE = 15.0f;
-constexpr float DEFAULT_POINT_SIZE = 4.0f;
 
 //----------------------------------------
 // FUNCTIONS
@@ -284,37 +284,19 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
     if (action == GLFW_PRESS) {
         if (key == GLFW_KEY_E) {
-            g_first_person = !g_first_person;
-            if (g_first_person) {
-                std::cout << "First person mode enabled" << std::endl;
+            g_enable_camera = !g_enable_camera;
+            if (g_enable_camera) {
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
             } else {
-                std::cout << "First person mode disabled" << std::endl;
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
                 g_camera.stop();
-            }
-        } else if (key == GLFW_KEY_T) {
-            g_disable_physics = !g_disable_physics;
-            if (g_disable_physics) {
-                std::cout << "Physics disabled" << std::endl;
-            } else {
-                std::cout << "Physics enabled" << std::endl;
-            }
-        } else if (key == GLFW_KEY_V) {
-            g_vsync = !g_vsync;
-            if (g_vsync) {
-                std::cout << "VSync enabled" << std::endl;
-                glfwSwapInterval(1);
-            } else {
-                std::cout << "VSync disabled" << std::endl;
-                glfwSwapInterval(0);
             }
         }
     } 
 }
 
 void process_input(GLFWwindow *window, double dt) {
-    if (g_first_person) {
+    if (g_enable_camera) {
         g_camera.process_inputs(window, dt);
     }
     glm::mat4 view_proj_matrix = g_proj_matrix * g_camera.get_view();
@@ -414,44 +396,35 @@ namespace ImGui {
 void build_control_panel() {
     ImGui::Begin("Control Panel");
     ImGui::TextWrapped("This is a simulation of fluid particles in an invisible container. The color of the particles is determined by their speed; slower particles are bluer, and faster particles are redder.");
-    if (ImGui::CollapsingHeader("Properties", ImGuiTreeNodeFlags_DefaultOpen)) {
-        ImGui::SeparatorText("READ-ONLY");
+    if (ImGui::CollapsingHeader("Statistics", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Text("Particles: %zu", g_psystem->num_particles);
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
         ImGui::Text("Global time: %.2f s", g_timer.elapsed_s());
-        
         ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
+    }
 
-        ImGui::OnOff("Camera control:", g_first_person);
-        ImGui::OnOff("Physics:", !g_disable_physics);
+    if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::Checkbox("Physics", &g_enable_physics);
+        ImGui::Checkbox("Shaking", &g_shake);
 #ifndef __APPLE__
-        ImGui::OnOff("VSync:", g_vsync);
+        ImGui::Checkbox("VSync", &g_vsync);
+        glfwSwapInterval(g_vsync ? 1 : 0);
 #endif
-        
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
+        ImGui::SliderFloat("Particle size", &g_point_size, 0.1f, 10.0f);
+        glPointSize(g_point_size);
 
-        ImGui::Text("Camera position: (%.2f, %.2f, %.2f)", g_camera.get_position().x, g_camera.get_position().y, g_camera.get_position().z);
-        ImGui::Text("Camera direction: (%.2f, %.2f, %.2f)", g_camera.get_view_dir().x, g_camera.get_view_dir().y, g_camera.get_view_dir().z);
-        ImGui::Text("Camera speed: %.2f", g_camera.get_speed());
-        
-        ImGui::SeparatorText("MODIFIABLE");
-
-        static float point_size = DEFAULT_POINT_SIZE;
-        ImGui::SliderFloat("Particle size", &point_size, 0.1f, 10.0f);
         if (ImGui::Button("Reset Container", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
             std::cout << "Resetting container" << std::endl;
             g_psystem->respawn();
         }
         ImGui::Spacing();
-        glPointSize(point_size);
     }
-    if (ImGui::CollapsingHeader("Controls", ImGuiTreeNodeFlags_DefaultOpen)) {
-        ImGui::SeparatorText("Camera Controls");
+       
+    if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::OnOff("Camera control:", g_enable_camera);
+        ImGui::Spacing();
 
+        ImGui::SeparatorText("Controls");
         ImGui::TextWithBackground("     E     ");
         ImGui::SameLine();
         ImGui::AlignTextToFramePadding();
@@ -477,21 +450,12 @@ void build_control_panel() {
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Slower camera movement");
 
-        ImGui::SeparatorText("Physics Controls");
-        
-        ImGui::TextWithBackground("     T     ");
-        ImGui::SameLine();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Toggle physics");
+        ImGui::Spacing();
+        ImGui::SeparatorText("Info");
 
-#ifndef __APPLE__
-        ImGui::SeparatorText("Physics Controls");
-
-        ImGui::TextWithBackground("     V     ");
-        ImGui::SameLine();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Toggle VSync");
-#endif
+        ImGui::Text("Camera position: (%.2f, %.2f, %.2f)", g_camera.get_position().x, g_camera.get_position().y, g_camera.get_position().z);
+        ImGui::Text("Camera direction: (%.2f, %.2f, %.2f)", g_camera.get_view_dir().x, g_camera.get_view_dir().y, g_camera.get_view_dir().z);
+        ImGui::Text("Camera speed: %.2f", g_camera.get_speed());
         ImGui::Spacing();
     }
 
@@ -645,22 +609,12 @@ int main() {
     ImGui::GetStyle() = new_imgui_style();
 
     // Render settings
-    glPointSize(DEFAULT_POINT_SIZE);
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    if (g_vsync) {
-        std::cout << "VSync enabled" << std::endl;
-        glfwSwapInterval(1);
-    } else {
-        std::cout << "VSync disabled" << std::endl;
-        glfwSwapInterval(0);
-    }
-    if (g_first_person) {
-        std::cout << "First person mode enabled" << std::endl;
+    if (g_enable_camera) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     } else {
-        std::cout << "First person mode disabled" << std::endl;
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         g_camera.stop();
     }
@@ -694,7 +648,7 @@ int main() {
         process_input(window, dt);
 
         // Physics
-        if (!g_disable_physics) {
+        if (g_enable_physics) {
             update(g_psystem, g_shake);
         }
         
