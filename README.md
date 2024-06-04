@@ -1,8 +1,10 @@
 ## Description
 
+CS 179 Final Project: Markus Lendermann & Dominic Phung
+
 This program is a GUI-based fluid dynamics simulator; as such, it cannot be used via just the command-line. OpenGL 4.1 is required to run this program.
 
-By: Markus Lendermann & Dominic Phung
+<img src="assets/demo.png" width="1000"/>
 
 ## CUDA acceleration
 Comments detailing how this program will be parallelized to run on a GPU with CUDA can be found in `physics.cpp`.
