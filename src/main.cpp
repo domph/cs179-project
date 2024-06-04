@@ -412,7 +412,7 @@ namespace ImGui {
 
 void build_control_panel() {
     ImGui::Begin("Control Panel");
-    ImGui::TextWrapped("This is a simulation of fluid particles in an invisible container.");
+    ImGui::TextWrapped("This is a simulation of fluid particles in an invisible container. The color of the particles is determined by their speed; slower particles are bluer, and faster particles are redder.");
     if (ImGui::CollapsingHeader("Properties", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::SeparatorText("READ-ONLY");
         ImGui::Text("Particles: %d", g_psystem->num_particles);
