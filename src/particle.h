@@ -58,6 +58,7 @@ struct Box {
         }
     }
 
+    // For debug only
     void print_members() {
         for (int x = 0; x < x_partitions; x++) {
             for (int y = 0; y < y_partitions; y++) {
@@ -121,13 +122,10 @@ struct ParticleSystem {
 
     void spawn_parcel(float x, float y, float z) {
         int old_num_particles = num_particles;
-        for (float i = 0; i < 2 * PARCEL_R; i += PARCEL_STEP) {
-            for (float j = 0; j < 2 * PARCEL_R; j += PARCEL_STEP) {
-                for (int k = 0; k < 2 * PARCEL_R; k += PARCEL_STEP) {
+        for (float i = 0; i < 2 * PARCEL_R; i += PARCEL_STEP)
+            for (float j = 0; j < 2 * PARCEL_R; j += PARCEL_STEP)
+                for (int k = 0; k < 2 * PARCEL_R; k += PARCEL_STEP)
                     num_particles++;
-                }
-            }
-        }
 
         pos       = (glm::vec3 *) realloc(pos, num_particles * sizeof(glm::vec3));
         deltapos  = (glm::vec3 *) realloc(deltapos, num_particles * sizeof(glm::vec3));

@@ -27,6 +27,8 @@
 #define INIT_KLEVELS 4
 
 #define PARCEL_R 1.6f
+#define PARCEL_STEP 1.0f
+
 #define PARCEL_DEFAULT_XY (XYBOUND / 2)
 #define PARCEL_MIN_XY (PARCEL_R)
 #define PARCEL_MAX_XY (XYBOUND - PARCEL_R)
@@ -34,8 +36,6 @@
 #define PARCEL_DEFAULT_Z 16.0f
 #define PARCEL_MIN_Z (PARCEL_R)
 #define PARCEL_MAX_Z (ZBOUND - PARCEL_R)
-
-#define PARCEL_STEP 1.0f
 
 
 /* Physics constants */
