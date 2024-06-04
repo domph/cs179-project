@@ -400,7 +400,7 @@ namespace ImGui {
         ImGui::Dummy(rect_size);
     }
     void OnOff(const char *label, bool val) {
-        ImGui::Text(label);
+        ImGui::Text("%s", label);
         ImGui::SameLine();
         if (val) {
             ImGui::TextColored(ImVec4(0, 1, 0, 1), "ON");
