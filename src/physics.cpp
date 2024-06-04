@@ -228,14 +228,14 @@ void updateVel(ParticleSystem *psystem) {
    contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
    and so they can be accessed by GPU threads in a coalesced fashion with
    minimal bank conflicts. */
-void applyCollisionResponse(ParticleSystem *psystem, bool shake) {
+void applyCollisionResponse(ParticleSystem *psystem) {
     for (size_t i = 0; i < psystem->num_particles; i++) {   
         if (psystem->pos[i].x < SHAKE(psystem->t)) {
             psystem->pos[i].x = 2*SHAKE(psystem->t) -psystem->pos[i].x;
             psystem->vel[i].x *= -1;
         }
         if (psystem->pos[i].x > psystem->box->xybound + SHAKE(psystem->t)) {
-            psystem->pos[i].x = 2*(psystem->box->xybound+SHAKE(psystem->t)) - psystem->pos[i].x;
+            psystem->pos[i].x = 2*(psystem->box->xybound + SHAKE(psystem->t)) - psystem->pos[i].x;
             psystem->vel[i].x *= -1;
         }
 
@@ -323,7 +323,7 @@ void update(ParticleSystem *psystem, bool shake) {
         calcLambda(psystem);
         calcDeltaPos(psystem);
         updatePos(psystem);
-        applyCollisionResponse(psystem, shake);
+        applyCollisionResponse(psystem);
     }
 
     calcVel(psystem);
@@ -333,5 +333,5 @@ void update(ParticleSystem *psystem, bool shake) {
 
     savePrevPos(psystem);
 
-    psystem->t += DT;
+    if (shake) psystem->t += DT;
 }

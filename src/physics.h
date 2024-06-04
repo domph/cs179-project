@@ -49,7 +49,7 @@ void updateVel(ParticleSystem *particles);
 
 /* Apply a collision response between every particle in the particle
    system using an elastic model - Algorithm 1 Line 14 */
-void applyCollisionResponse(ParticleSystem *particles, bool shake);
+void applyCollisionResponse(ParticleSystem *particles);
 
 /* Calculate the vorticity corrective force from Macklin & Muller (2013).
    Calculate XSPH viscosity and update the next velocity for each particle.
