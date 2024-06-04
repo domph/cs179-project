@@ -1,7 +1,5 @@
 #pragma once
-#define GLM_ENABLE_EXPERIMENTAL
 
-#include <glm/gtx/norm.hpp>
 #include "particle.h"
 
 // TODO: consider using "glm/gtx/fast_exponential.hpp"

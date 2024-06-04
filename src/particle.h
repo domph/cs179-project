@@ -49,7 +49,7 @@ struct Box {
         } else {
             printf("Box error: particle out of bounds!\n");
             printf("loc:   x: %d, y: %d, z: %d\n", x, y, z);
-            printf("bound: x: %lld, y: %lld, z: %lld\n", partitions.size(), partitions[x].size(), partitions[x][y].size());
+            printf("bound: x: %zu, y: %zu, z: %zu\n", partitions.size(), partitions[x].size(), partitions[x][y].size());
         }
     }
 

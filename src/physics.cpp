@@ -1,7 +1,8 @@
 ﻿#define GLM_ENABLE_EXPERIMENTAL
 
-#include <cmath>
 #include "physics.h"
+#include <cmath>
+#include <glm/gtx/norm.hpp>
 
 // TODO: consider using "glm/gtx/fast_exponential.hpp"
 

@@ -1,15 +1,25 @@
 #pragma once
 
+#ifdef __APPLE__
+#include <OpenGL/gl3.h>
+#include <OpenGl/gl3ext.h>
+#else
 #include <GL/glew.h>
+#endif
 #include <glm/glm.hpp>
 #include "particle.h"
 #include "buffer_manager.h"
+
+struct ParticleData {
+    float pos[3];
+    float vel[3];
+};
 
 /* Handles rendering of particles */
 class ParticleSimulator {
 private:
     size_t num_particles = 0;
-    float *buffer        = nullptr;
+    ParticleData *buffer = nullptr;
     GLuint vao           = 0;
     GLuint vbo           = 0;
     GLsync sync_obj      = 0;
