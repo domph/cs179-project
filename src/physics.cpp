@@ -84,10 +84,11 @@ void kNearestNeighbors(ParticleSystem *psystem) {
     }
 }
 
-void applyBodyForces(ParticleSystem *psystem)
+void applyBodyForces(ParticleSystem *psystem, float t)
 {
     for (int i = 0; i < psystem->num_particles; i++) {
         psystem->vel[i].z -= G * DT;
+        // psystem->vel[i].x += SHAKE(t) * DT;
         psystem->pos[i] = psystem->prevpos[i] + DT * psystem->vel[i];
     }
 }
@@ -248,8 +249,8 @@ void applyVorticityCorrection(ParticleSystem *psystem) {
     }
 }
 
-void update(ParticleSystem *psystem) {
-    applyBodyForces(psystem);
+void update(ParticleSystem *psystem, float t) {
+    applyBodyForces(psystem, t);
     calcPartition(psystem);
     kNearestNeighbors(psystem);
 
