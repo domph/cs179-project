@@ -127,4 +127,29 @@ struct ParticleSystem {
         pos[id] = p;
         prevpos[id] = p;
     }
+
+    void spawn_parcel() {
+        
+        // float step = 1.0f;
+        // int total = 0;
+
+        // for (float i = 0; i < 2 * PARCEL_R; i += step) {
+        //     for (float j = 0; j < 2 * PARCEL_R; j += step) {
+        //         for (int k = 0; k < 2 * PARCEL_R; k += step) {
+        //             total++;
+        //         }
+        //     }
+        // }
+        // g_psystem = new ParticleSystem(XYBOUND, ZBOUND, total);
+
+        // glm::vec3 p = glm::vec3(XYBOUND / 2 - PARCEL_R, XYBOUND / 2 - PARCEL_R, PARCEL_Z);
+        // int id = 0;
+        // for (float i = 0; i < 2 * PARCEL_R; i += step) {
+        //     for (float j = 0; j < 2 * PARCEL_R; j += step) {
+        //         for (int k = 0; k < 2 * PARCEL_R; k += step) {
+        //             g_psystem->init_particle(id++, glm::vec3(i, j, k) + p);
+        //         }
+        //     }
+        // }
+    }
 };
