@@ -9,7 +9,12 @@
 #include <iostream>
 #include <algorithm>
 #include <format>
+#ifdef __APPLE__
+#include <OpenGL/gl3.h>
+#include <OpenGl/gl3ext.h>
+#else
 #include <GL/glew.h>
+#endif
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>

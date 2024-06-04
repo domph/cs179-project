@@ -1,6 +1,11 @@
 #pragma once
 
+#ifdef __APPLE__
+#include <OpenGL/gl3.h>
+#include <OpenGl/gl3ext.h>
+#else
 #include <GL/glew.h>
+#endif
 
 class BufferManager {
 private:
