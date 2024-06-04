@@ -438,12 +438,14 @@ void build_control_panel() {
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Toggle physics");
 
+#ifndef __APPLE__
         ImGui::SeparatorText("Physics Controls");
 
         ImGui::TextWithBackground("     V     ");
         ImGui::SameLine();
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Toggle VSync");
+#endif
     }
     ImGui::Spacing();
 
