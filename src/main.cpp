@@ -534,7 +534,7 @@ int main() {
         return -1;
     }
 
-    // Set the OpenGL version to 4.6
+    // Set the OpenGL version to 4.1
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -647,7 +647,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
         
         glfwSetWindowTitle(window, (std::format("CS179 Project | FPS: {:.1f} | Particles: {:d}", ImGui::GetIO().Framerate, g_psystem->num_particles)).c_str());//std::to_string(ImGui::GetIO().Framerate)).c_str());
-#ifdef WIN32
+#ifndef __APPLE__
         check_dpi(window);  // must be called before imgui::newframe()
 #endif
         // User input
