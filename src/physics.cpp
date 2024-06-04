@@ -5,8 +5,6 @@
 #include <cmath>
 #include <glm/gtx/norm.hpp>
 
-// TODO: consider using "glm/gtx/fast_exponential.hpp"
-
 float calcWpoly6(glm::vec3 i, glm::vec3 j) {    
     float r2 = glm::distance2(i, j);
     return r2 <= P_H2 ? POLY6_COEFF * std::pow(P_H2 - r2, 3) : 0;
