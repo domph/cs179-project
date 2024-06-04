@@ -39,11 +39,13 @@ add_library(imgui ${IMGUI_SRC_LIST})
 include_directories(lib/imgui-docking-1.90.7)
 target_link_libraries(${PROJECT_NAME} imgui)
 
-# Add and build GLEW
-set(BUILD_UTILS off)
-add_subdirectory(lib/glew-2.1.0/build/cmake EXCLUDE_FROM_ALL)
-include_directories(lib/glew-2.1.0/include)
-target_link_libraries(${PROJECT_NAME} glew_s)
+# Add and build GLEW (not needed on macOS)
+if (NOT APPLE)
+    set(BUILD_UTILS off)
+    add_subdirectory(lib/glew-2.1.0/build/cmake EXCLUDE_FROM_ALL)
+    include_directories(lib/glew-2.1.0/include)
+    target_link_libraries(${PROJECT_NAME} glew_s)
+endif()
 
 # Add and build GLFW
 set(GLFW_BUILD_EXAMPLES OFF)
@@ -57,14 +59,3 @@ target_link_libraries(${PROJECT_NAME} glfw)
 # Add OpenGL
 find_package(OpenGL REQUIRED)
 target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES})
-
-# Platform-specific settings
-# if (WIN32)
-#     target_link_libraries(${PROJECT_NAME} opengl32)
-# elseif (APPLE)
-    # TODO
-    #find_library(COCOA_LIBRARY Cocoa)
-    #find_library(IOKIT_LIBRARY IOKit)
-    #find_library(COREVIDEO_LIBRARY CoreVideo)
-    #target_link_libraries(${PROJECT_NAME} ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
-# endif()
