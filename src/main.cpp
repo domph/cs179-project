@@ -1,4 +1,5 @@
 #define GLM_ENABLE_EXPERIMENTAL
+#define GL_SILENCE_DEPRECATION
 #include "shaders.h"
 #include "physics.h"
 #include "particle_simulator.h"

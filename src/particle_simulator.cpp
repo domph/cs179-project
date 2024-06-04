@@ -1,3 +1,4 @@
+#define GL_SILENCE_DEPRECATION
 #include "particle_simulator.h"
 
 void ParticleSimulator::create_vbo(size_t size) {

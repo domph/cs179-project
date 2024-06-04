@@ -1,3 +1,4 @@
+#define GL_SILENCE_DEPRECATION
 #include "buffer_manager.h"
 #include <stdexcept>
 #include <iostream>

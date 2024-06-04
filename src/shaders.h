@@ -2,7 +2,7 @@
 #include <string>
 
 const std::string VERTEX_SHADER = R"(
-#version 460 core
+#version 410 core
 
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 velocity;
@@ -23,7 +23,7 @@ void main() {
 )";
 
 const std::string FRAGMENT_SHADER = R"(
-#version 460 core
+#version 410 core
 
 in vec3 vertex_color;
 out vec4 color;  
