@@ -4,8 +4,8 @@
 #include <iostream>
 #include <glm/gtx/string_cast.hpp>
 
-Camera::Camera(glm::vec3 position, glm::vec3 up, float look_x, float look_y, float mouse_sensitivity, float speed)
-    : position(position), up(up), velocity(glm::vec3(0.0f)), movement_speed(speed), mouse_sensitivity(mouse_sensitivity) {
+Camera::Camera(glm::vec3 position, glm::vec3 up, float look_x, float look_y, float mouse_sensitivity)
+    : position(position), up(up), velocity(glm::vec3(0.0f)), mouse_sensitivity(mouse_sensitivity) {
     look.x = look_x;
     look.y = look_y;
 

@@ -435,6 +435,7 @@ void build_control_panel() {
 
         ImGui::Text("Camera position: (%.2f, %.2f, %.2f)", g_camera.get_position().x, g_camera.get_position().y, g_camera.get_position().z);
         ImGui::Text("Camera direction: (%.2f, %.2f, %.2f)", g_camera.get_view_dir().x, g_camera.get_view_dir().y, g_camera.get_view_dir().z);
+        ImGui::Text("Camera speed: %.2f", g_camera.get_speed());
         
         ImGui::SeparatorText("MODIFIABLE");
 
