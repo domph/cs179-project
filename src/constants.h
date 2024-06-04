@@ -54,8 +54,9 @@
         } \
     }
 
+#define SHAKE_A 1.0f
 #define SHAKE_W 3.0f
-#define SHAKE(t) (1.0f * glm::sin(SHAKE_W * t))
+#define SHAKE(t) (SHAKE_A * glm::sin(SHAKE_W * t))
 
 
 /* Physics constants */
