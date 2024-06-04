@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 project(cs179-project)
 
-## FOR SUBMISSION
-set(ENABLE_DEBUG_MODE ON)
-set(ENABLE_STRICT_MODE ON)
+##### CONFIG #####
+set(ENABLE_DEBUG_MODE ON)      # ON = Includes debugging symbols, but less optimizations | OFF = No debug symbols, but more optimizations 
+set(ENABLE_STRICT_MODE ON)     # ON = Shows more warnings/errors | OFF = Shows less warnings/errors
+##################
 
 # Specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)
