@@ -133,6 +133,7 @@ struct ParticleSystem {
         free(box);
         box = new Box(XYBOUND, ZBOUND, num_particles);
         
+        t = 0;
         spawn_init();
     }
 
@@ -152,6 +153,7 @@ struct ParticleSystem {
         neighbors     = (size_t *)   realloc(neighbors, num_particles * MAX_NEIGHBORS * sizeof(size_t));
         num_neighbors = (size_t *)   realloc(num_neighbors, num_particles * sizeof(size_t));
 
+        x += SHAKE(t);
         glm::vec3 p = glm::vec3(x - PARCEL_R, y - PARCEL_R, z - PARCEL_R);
         PSYSTEM_PARCEL_SPAWN(init_particle(old_num_particles++, glm::vec3(i, j, k) + p));
     }
