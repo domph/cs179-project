@@ -486,7 +486,7 @@ void build_control_panel() {
         ImGui::SliderFloat("Y", &pos_y, PARCEL_MIN_XY, PARCEL_MAX_XY);
         ImGui::SliderFloat("Z", &pos_z, PARCEL_MIN_Z, PARCEL_MAX_Z);
         ImGui::SeparatorText("Velocity");
-        ImGui::SliderFloat(" ", &vel_z, -PARCEL_MIN_Z_VEL, -PARCEL_MAX_Z_VEL);\
+        ImGui::SliderFloat("Z ", &vel_z, -PARCEL_MIN_Z_VEL, -PARCEL_MAX_Z_VEL);\
         ImGui::Spacing();
         // ImGui::SeparatorText("");
         ImGui::Spacing();
