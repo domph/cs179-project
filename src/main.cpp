@@ -408,11 +408,9 @@ void build_control_panel() {
         ImGui::Checkbox("Physics", &g_enable_physics);
         ImGui::Checkbox("Shaking", &g_shake);
         
-#ifndef __APPLE__
         if (ImGui::Checkbox("VSync", &g_vsync)) {
             glfwSwapInterval(g_vsync ? 1 : 0);
         }
-#endif
         if (ImGui::SliderFloat("Particle size", &g_point_size, 0.1f, 10.0f)) {
             glPointSize(g_point_size);
         }
