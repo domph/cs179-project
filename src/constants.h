@@ -47,7 +47,7 @@
 #define PARCEL_MIN_Z r
 #define PARCEL_MAX_Z (ZBOUND - r)
 
-#define PARCEL_DEFAULT_Z_VEL 0.0f
+#define PARCEL_DEFAULT_Z_VEL -0.0f
 #define PARCEL_MIN_Z_VEL 0.0f
 #define PARCEL_MAX_Z_VEL 100.0f
 
