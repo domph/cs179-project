@@ -60,7 +60,7 @@
         } \
     }
 
-#define SHAKE_A 4.0f
+#define SHAKE_A 1.0f
 #define SHAKE_W 3.0f
 #define SHAKE(t) (SHAKE_A * glm::sin(SHAKE_W * t))
 
