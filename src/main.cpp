@@ -395,7 +395,7 @@ namespace ImGui {
 
 void build_control_panel() {
     ImGui::Begin("Control Panel");
-    ImGui::TextWrapped("This is a simulation of fluid particles in an invisible container. The color of the particles is determined by their speed; slower particles are bluer, and faster particles are redder.");
+    ImGui::TextWrapped("This is a simulation of fluid particles in an invisible container. The color of the particles is determined by their speed; slower particles are bluer, and faster particles are redder. The position and direction of the camera can be adjusted via the controls below.");
     if (ImGui::CollapsingHeader("Statistics", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Text("Particles: %zu", g_psystem->num_particles);
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
