@@ -105,8 +105,6 @@ GLFWbool _glfwPlatformCreateCondVar(_GLFWcondvar* condvar)
 
 void _glfwPlatformDestroyCondvar(_GLFWcondvar* condvar)
 {
-    if (condvar->win32.allocated)
-        DeleteConditionVariable(condvar->win32.condvar);
     memset(condvar, 0, sizeof(_GLFWcondvar));
 }
 
