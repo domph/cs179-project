@@ -59,9 +59,9 @@ struct Box {
             size_t n = partition_sizes[part_sz_idx(x, y, z)]++;
             partitions[part_idx(x, y, z, n)] = id;
         } else {
-            printf("Box error: particle out of bounds!\n");
+            printf("Warning: particle out of bounds!\n");
             printf("loc:   x: %d, y: %d, z: %d\n", x, y, z);
-            printf("bound: x: %zu, y: %zu, z: %zu\n", x_partitions, y_partitions, z_partitions);
+            printf("bound: x: [0, %zu], y: [0, %zu], z: [0, %zu]\n", x_partitions, y_partitions, z_partitions);
         }
     }
 
@@ -93,15 +93,15 @@ struct ParticleSystem {
 
     Box *box;
 
-    void init_particle(size_t id, glm::vec3 p) {
+    void init_particle(size_t id, glm::vec3 p, glm::vec3 v) {
         pos[id] = p;
         prevpos[id] = p;
-        vel[id] = glm::vec3(0.0f);
+        vel[id] = v;
     }
 
     void spawn_init() {
         size_t id = 0;
-        PSYSTEM_INIT_SPAWN(init_particle(id++, glm::vec3(i, j, k*INIT_STEP)));
+        PSYSTEM_INIT_SPAWN(init_particle(id++, glm::vec3(i, j, k*INIT_STEP), glm::vec3(0.0f)));
     }
 
     ParticleSystem() {
@@ -140,11 +140,11 @@ struct ParticleSystem {
         spawn_init();
     }
 
-    void spawn_parcel(float x, float y, float z) {
+    void spawn_parcel(float x, float y, float z, float z_vel, float r) {
         size_t old_num_particles = num_particles;
 
         // Initial calculation of num_particles
-        PSYSTEM_PARCEL_SPAWN(num_particles++);
+        PSYSTEM_PARCEL_SPAWN(r, num_particles++);
 
         pos       = (glm::vec3 *) realloc(pos, num_particles * sizeof(glm::vec3));
         deltapos  = (glm::vec3 *) realloc(deltapos, num_particles * sizeof(glm::vec3));
@@ -157,7 +157,8 @@ struct ParticleSystem {
         num_neighbors = (size_t *)   realloc(num_neighbors, num_particles * sizeof(size_t));
 
         x += SHAKE(shake_t);
-        glm::vec3 p = glm::vec3(x - PARCEL_R, y - PARCEL_R, z - PARCEL_R);
-        PSYSTEM_PARCEL_SPAWN(init_particle(old_num_particles++, glm::vec3(i, j, k) + p));
+        glm::vec3 p = glm::vec3(x - r, y - r, z - r);
+        glm::vec3 v = glm::vec3(0.0f, 0.0f, z_vel);
+        PSYSTEM_PARCEL_SPAWN(r, init_particle(old_num_particles++, glm::vec3(i, j, k) + p, v));
     }
 };

@@ -34,27 +34,33 @@
         } \
     }
 
-#define PARCEL_R 1.6f
 #define PARCEL_STEP 1.0f
+#define PARCEL_R_MIN PARCEL_STEP
+#define PARCEL_R_MAX (XYBOUND / 5)
+#define PARCEL_R_DEFAULT (XYBOUND / 10)
 
 #define PARCEL_DEFAULT_XY (XYBOUND / 2)
-#define PARCEL_MIN_XY (PARCEL_R)
-#define PARCEL_MAX_XY (XYBOUND - PARCEL_R)
+#define PARCEL_MIN_XY r
+#define PARCEL_MAX_XY (XYBOUND - r)
 
 #define PARCEL_DEFAULT_Z 16.0f
-#define PARCEL_MIN_Z (PARCEL_R)
-#define PARCEL_MAX_Z (ZBOUND - PARCEL_R)
+#define PARCEL_MIN_Z r
+#define PARCEL_MAX_Z (ZBOUND - r)
 
-#define PSYSTEM_PARCEL_SPAWN(CODE) \
-    for (float i = 0; i < 2 * PARCEL_R; i += PARCEL_STEP) { \
-        for (float j = 0; j < 2 * PARCEL_R; j += PARCEL_STEP) { \
-            for (int k = 0; k < 2 * PARCEL_R; k += PARCEL_STEP) { \
+#define PARCEL_DEFAULT_Z_VEL 0.0f
+#define PARCEL_MIN_Z_VEL 0.0f
+#define PARCEL_MAX_Z_VEL 100.0f
+
+#define PSYSTEM_PARCEL_SPAWN(R, CODE) \
+    for (float i = 0; i < 2 * R; i += PARCEL_STEP) { \
+        for (float j = 0; j < 2 * R; j += PARCEL_STEP) { \
+            for (int k = 0; k < 2 * R; k += PARCEL_STEP) { \
                 CODE; \
             } \
         } \
     }
 
-#define SHAKE_A 1.0f
+#define SHAKE_A 4.0f
 #define SHAKE_W 3.0f
 #define SHAKE(t) (SHAKE_A * glm::sin(SHAKE_W * t))
 

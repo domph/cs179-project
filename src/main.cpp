@@ -464,22 +464,36 @@ void build_control_panel() {
     }
 
     if (ImGui::CollapsingHeader("Add Particles", ImGuiTreeNodeFlags_DefaultOpen)) {
-        ImGui::TextWrapped("This allows you to add parcels of particles to the simulation at a desired location in the box.");
+        ImGui::TextWrapped("This allows you to add parcels of particles of a desired size to the simulation at a desired location and velocity in the box.");
     
         static float pos_x = PARCEL_DEFAULT_XY;
         static float pos_y = PARCEL_DEFAULT_XY;
         static float pos_z = PARCEL_DEFAULT_Z;
+        static float vel_z = PARCEL_DEFAULT_Z_VEL;
+        static float r     = PARCEL_R_DEFAULT;
+
+        pos_x = glm::max(pos_x, PARCEL_MIN_XY);
+        pos_x = glm::min(pos_x, PARCEL_MAX_XY);
+        pos_y = glm::max(pos_y, PARCEL_MIN_XY);
+        pos_y = glm::min(pos_y, PARCEL_MAX_XY);
+        pos_z = glm::max(pos_z, PARCEL_MIN_Z);
+        pos_z = glm::min(pos_z, PARCEL_MAX_Z);
+
+        ImGui::SeparatorText("Radius");
+        ImGui::SliderFloat("", &r, PARCEL_R_MIN, PARCEL_R_MAX);
         ImGui::SeparatorText("Position");
         ImGui::SliderFloat("X", &pos_x, PARCEL_MIN_XY, PARCEL_MAX_XY);
         ImGui::SliderFloat("Y", &pos_y, PARCEL_MIN_XY, PARCEL_MAX_XY);
         ImGui::SliderFloat("Z", &pos_z, PARCEL_MIN_Z, PARCEL_MAX_Z);
+        ImGui::SeparatorText("Velocity");
+        ImGui::SliderFloat(" ", &vel_z, -PARCEL_MIN_Z_VEL, -PARCEL_MAX_Z_VEL);\
         ImGui::Spacing();
         // ImGui::SeparatorText("");
         ImGui::Spacing();
 
         if (ImGui::Button("Add Parcel", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-            std::cout << "Adding parcel to pos: " << pos_x << ", " << pos_y << std::endl;
-            g_psystem->spawn_parcel(pos_x, pos_y, pos_z);
+            // std::cout << "Adding parcel to pos: " << pos_x << ", " << pos_y << std::endl;
+            g_psystem->spawn_parcel(pos_x, pos_y, pos_z, vel_z, r);
         }
     }
     ImGui::End();
