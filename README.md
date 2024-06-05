@@ -1,11 +1,17 @@
 # CS 179 Final Project: Markus Lendermann & Dominic Phung
 
-This program is a GUI-based fluid dynamics simulator; as such, it cannot be used via just the command-line. OpenGL 4.1 is required to run this program. This folder contains the source code to compile and run the program. Pre-built binaries for Windows and MacOS have been included in the `bin` folder (they have been tested on a variety of devices without any failure, but in the event something is incompatible, compiling from the source and running should work).
+This program is a GUI-based fluid dynamics simulator (as such, it cannot be used entirely from the command-line but instead requires a display). OpenGL 4.1 is required to run this program.
 
 <img src="assets/demo.png" width="1000"/>
 
-## CUDA acceleration
+## CUDA Acceleration
 Comments detailing how this program will be parallelized to run on a GPU with CUDA can be found in `physics.cpp`.
+
+## Pre-built Binaries
+
+This folder contains the source code to compile and run the program. However, we include pre-built binaries for Windows (x64) and MacOS in the `bin` folder for convenience. These binaries have been tested on a variety of devices without any failure; should they for whatever reason not work, compiling from the source directly and running should work instead.
+
+To run the MacOS binary, you first have to make it executable via `chmod +x ./cs179-project-mac`. Then, follow these instructions to run it (since the app isn't registered with Apple): [https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac).
 
 ## Compilation Instructions
 
