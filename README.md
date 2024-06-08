@@ -13,7 +13,7 @@ This folder contains the source code to compile and run the program. However, we
 
 To run the MacOS binary, you first have to make it executable via `chmod +x ./cs179-project-mac`. Then, follow these instructions to run it (since the app isn't registered with Apple): [https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac).
 
-## Compilation Instructions
+## Required Toolchain
 
 This project requires the following tools:
 
@@ -22,19 +22,9 @@ This project requires the following tools:
 - A C++ compiler that supports C++17
 - A build system (e.g., `make`)
 
-For simplicity, we assume the use of `make` as the build system on all platforms. Platform-specific instructions for setting up the required toolchain are provided below. To compile the project, run the following commands in the root directory:
+Platform-specific instructions for setting up the required toolchain are provided below. 
 
-```
-mkdir build
-cd build
-cmake -G "Unix Makefiles" ..
-make
-```
-On some systems, `make` may have a different name (e.g., `mingw32-make` on `MinGW-w64`). Adjust the final command accordingly.
-
-After the above commands complete successfully, the executable `cs179-project` (or `cs179-project.exe` on Windows) will be located in the build directory.
-
-## Platform-Specific Toolchain Setup
+## Platform-Specific Toolchain Setup & Compilation Instructions
 
 ### Windows (64-bit)
 
@@ -67,7 +57,7 @@ To compile the program on Windows, run the following commands in the root direct
 ```
 mkdir build
 cd build
-cmake -G "Unix Makefiles" ..
+cmake -G "MinGW Makefiles" ..
 mingw32-make
 ```
 
