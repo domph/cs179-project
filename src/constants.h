@@ -54,7 +54,7 @@
 #define PSYSTEM_PARCEL_SPAWN(R, CODE) \
     for (float i = 0; i < 2 * R; i += PARCEL_STEP) { \
         for (float j = 0; j < 2 * R; j += PARCEL_STEP) { \
-            for (int k = 0; k < 2 * R; k += PARCEL_STEP) { \
+            for (int k = 0; k < 2 * R; k += (int)PARCEL_STEP) { \
                 CODE; \
             } \
         } \

@@ -3,9 +3,9 @@
 #include <stdexcept>
 #include <iostream>
 
-void BufferManager::init(int width, int height) {
-    this->width = width;
-    this->height = height;
+void BufferManager::init(int w, int h) {
+    width = w;
+    height = h;
 
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -58,12 +58,12 @@ void BufferManager::unbind() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void BufferManager::rescale(int width, int height) {
-    if (this->width == width && this->height == height) {
+void BufferManager::rescale(int w, int h) {
+    if (width == w && height == h) {
         return;
     }
-    std::cout << "Rescaling render buffer object: " << width << "x" << height << std::endl;
+    std::cout << "Rescaling render buffer object: " << w << "x" << h << std::endl;
     
     destroy();
-    init(width, height);
+    init(w, h);
 }

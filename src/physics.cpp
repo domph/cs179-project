@@ -7,14 +7,14 @@
 
 float calcWpoly6(glm::vec3 i, glm::vec3 j) {    
     float r2 = glm::distance2(i, j);
-    return r2 <= P_H2 ? POLY6_COEFF * std::pow(P_H2 - r2, 3) : 0;
+    return (float)(r2 <= P_H2 ? POLY6_COEFF * std::pow(P_H2 - r2, 3) : 0);
 }
 
 glm::vec3 calcWspiky(glm::vec3 i, glm::vec3 j) {
     float r = glm::distance(i, j);
 
     if ((EPS <= r) && (r <= P_H)) {
-        float coeff = -SPIKY_COEFF * std::pow(P_H - r, 2);
+        float coeff = (float)(-SPIKY_COEFF * std::pow(P_H - r, 2));
         return coeff * glm::normalize(i - j);
     } else {
         return glm::vec3(0.0f);
@@ -42,12 +42,12 @@ void kNearestNeighbors(ParticleSystem *psystem) {
         glm::vec3 pi = psystem->pos[p];
 
         // Discretize particle positions into a 3D grid of size P_H
-        int x = (pi.x + EPS) / P_H;
-        int y = (pi.y + EPS) / P_H;
-        int z = (pi.z + EPS) / P_H;
+        int x = (int)((pi.x + EPS) / P_H);
+        int y = (int)((pi.y + EPS) / P_H);
+        int z = (int)((pi.z + EPS) / P_H);
 
         float dist, max;
-        size_t max_idx, num_neighbors = 0;
+        size_t max_idx = 0, num_neighbors = 0;
         glm::vec3 pj;
 
         for (int i = x - 1; i <= x + 1; i++) {
@@ -69,12 +69,12 @@ void kNearestNeighbors(ParticleSystem *psystem) {
                             }
                         } else {
                             max = 0.0f;
-                            for (size_t l = 0; l < num_neighbors; l++) {
-                                size_t neighbor_idx = psystem->neighbors[p + l * psystem->num_particles];
+                            for (size_t idx = 0; idx < num_neighbors; idx++) {
+                                size_t neighbor_idx = psystem->neighbors[p + idx * psystem->num_particles];
                                 float d = glm::distance(pi, psystem->pos[neighbor_idx]);
                                 if (d > max) {
                                     max = d;
-                                    max_idx = l;
+                                    max_idx = idx;
                                 }
                             }
                             if (dist < max && dist < P_H) {

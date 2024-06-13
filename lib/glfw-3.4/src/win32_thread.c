@@ -25,6 +25,7 @@
 //
 //========================================================================
 
+#define  _WIN32_WINNT   0x0600
 #include "internal.h"
 
 #if defined(GLFW_BUILD_WIN32_THREAD)

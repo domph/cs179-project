@@ -1,11 +1,8 @@
 # CS 179 Final Project: Markus Lendermann & Dominic Phung
 
-This program is a GUI-based fluid dynamics simulator (as such, it cannot be used entirely from the command-line but instead requires a display). OpenGL 4.1 is required to run this program.
+This program is a GUI-based fluid dynamics simulator that provides the option of GPU acceleration if a compatible NVIDIA GPU is detected. OpenGL 4.1 is required to run this program.
 
 <img src="assets/demo.png" width="1000"/>
-
-## CUDA Acceleration
-Comments detailing how this program will be parallelized to run on a GPU with CUDA can be found in `physics.cpp`.
 
 ## Pre-built Binaries
 
@@ -17,54 +14,53 @@ To run the MacOS binary, you first have to make it executable via `chmod +x ./cs
 
 This project requires the following tools:
 
-- `CMake` (>= 3.12)
-- A C compiler
-- A C++ compiler that supports C++17
+- `CMake` (>= 3.20)
+- A C compiler**
+- A C++ compiler that supports C++17**
 - A build system (e.g., `make`)
+- NVIDIA CUDA Toolkit (version depends on the platform)
 
 Platform-specific instructions for setting up the required toolchain are provided below. 
+
+** Only compilers supported by CUDA work (these are detailed below for each platform)
 
 ## Platform-Specific Toolchain Setup & Compilation Instructions
 
 ### Windows (64-bit)
 
 #### Tool setup
-The simplest way to set up the toolchain on Windows is by using the `MinGW-w64` toolchain. Follow these steps:
 
-1. Navigate to [https://winlibs.com](https://winlibs.com)
-2. Scroll to the "Downloads" section
-3. Download GCC 14.1.0 (with POSIX threads), which supports C++20:
-    - Choose the UCRT runtime
-    - Choose Win64 (either version with or without LLVM/Clang/LLD/LLDB)
-    - Choose either the 7-zip or zip archive format
-4. Extract the downloaded file
-5. (Optional) Move the `mingw64` folder inside the extracted file to a preferred location (e.g. `C:\mingw64`)
-6. Add the `bin` folder inside the `mingw64` directory to the `PATH` environment variable
+On Windows, `MSVC` is the only suppported compiler. The simplest way to set up the toolchain is by installing Visual Studio (Community) 2022 via [https://visualstudio.microsoft.com/vs/](https://visualstudio.microsoft.com/vs/). In the installer page, make sure `Desktop development with C++` is selected under the `Workloads` section. This will install all the necessary tools for compiling this project. If you already have Visual Studio installed and are unsure if you have the right configuration, you can open up `Visual Studio Installer` and click `Modify` under the `Visual Studio (Community) 2022` section, and unselect (if it was already selected) and reselect the `Desktop development with C++` option.
 
-To verify the setup, run the following commands in the Command Prompt:
+Visual Studio does not update the `PATH` environment variable globally. Thus, by default, commands cannot be run in the regular `Command prompt`; instead, commands need to be run from `x64 Native Tools Command Prompt for VS 2022`. This specialized command prompt updates the `PATH` environment for the session appropriately. It can be found by the Search feature of Windows or by navigating to the `Start Menu > Visual Studio 2022` folder.
+
+Finally, NVIDIA CUDA Toolkit 12.5 needs to be installed. The installed can be found here: [https://developer.nvidia.com/cuda-downloads](https://developer.nvidia.com/cuda-downloads).
+
+To verify that the setup is working, run the following commands in the `x64 Native Tools Command Prompt`:
+
 ```
-cmake --version
-g++ --version
-gcc --version
-mingw32-make --version
+where cmake
+where nmake
+where cl
+nvcc --version
 ```
 
-If these commands fail, ensure the `PATH` environment variable includes the `mingw64\bin` directory and restart your terminal or VSCode to apply the changes.
+The first 3 commands should all print out paths that start with `C:\Program Files\Microsoft Visual Studio\2022\Community\`, and the final command should print a release number of 12.5.
 
 #### Compile the program
-To compile the program on Windows, run the following commands in the root directory using Command Prompt:
+To compile the program on Windows, run the following commands in the root directory of the project using `x64 Native Tools Command Prompt for VS 2022`:
 
 ```
 mkdir build
 cd build
-cmake -G "MinGW Makefiles" ..
-mingw32-make
+cmake -G "NMake Makefiles" ..
+nmake
 ```
 
 This will generate an executable called `cs179-project.exe` inside the `build` folder.
 
 
-### MacOS
+### MacOS -- WIP
 
 #### Tool Setup
 

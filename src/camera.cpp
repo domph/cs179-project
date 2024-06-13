@@ -39,8 +39,8 @@ void Camera::process_inputs(GLFWwindow *window, float dt) {
     last_mouse_x = mouse_x;
     last_mouse_y = mouse_y;
 
-    look.x += delta_x * mouse_sensitivity;
-    look.y += delta_y * mouse_sensitivity;
+    look.x += (float)(delta_x * mouse_sensitivity);
+    look.y += (float)(delta_y * mouse_sensitivity);
 
     if (look.y >= 90.0f) look.y = 89.999f;
     if (look.y <= -90.0f) look.y = -89.999f;

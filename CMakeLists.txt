@@ -1,22 +1,28 @@
-cmake_minimum_required(VERSION 3.10)
-project(cs179-project)
+cmake_minimum_required(VERSION 3.20)
+project(cs179-project LANGUAGES C CXX CUDA)
 
 ##### CONFIG #####
-set(ENABLE_DEBUG_MODE ON)      # ON = Includes debugging symbols, but less optimizations | OFF = No debug symbols, but more optimizations 
-set(ENABLE_STRICT_MODE ON)     # ON = Shows more warnings/errors | OFF = Shows less warnings/errors
+set(ENABLE_DEBUG_MODE ON)       # ON = Includes debugging symbols, but less optimizations | OFF = No debug symbols, but more optimizations 
+set(ENABLE_STRICT_MODE ON)      # ON = Shows more warnings/errors | OFF = Shows less warnings/errors
 ##################
+
+
+# Set CUDA architectures
+set(CMAKE_CUDA_ARCHITECTURES 75 86 89)
+
+# Statically link runtime libraries for MSVC
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 # Specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+# Debug/Release
 if (ENABLE_DEBUG_MODE)
     set(CMAKE_BUILD_TYPE RelWithDebInfo)
 else()
     set(CMAKE_BUILD_TYPE Release)
 endif() 
-if (MINGW)
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
-endif()
 
 set(SRC_LIST
     "src/main.cpp"
@@ -38,8 +44,14 @@ set(IMGUI_SRC_LIST
 
 # Source files
 add_executable(${PROJECT_NAME} ${SRC_LIST})
+
+# Compiler flags for strict mode
 if (ENABLE_STRICT_MODE)
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+    if(MSVC)
+        target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
+    else()
+        target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+    endif()
 endif()
 
 # Add GLM include files

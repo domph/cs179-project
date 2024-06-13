@@ -21,9 +21,9 @@ struct Box {
     size_t num_particles;
 
     Box(size_t xybound, size_t zbound, size_t num_particles) : xybound(xybound), zbound(zbound), num_particles(num_particles) {
-        x_partitions = (float)xybound / P_H + 1;
-        y_partitions = (float)xybound / P_H + 1;
-        z_partitions = (float)zbound / P_H + 1;
+        x_partitions = (size_t)((float)xybound / P_H + 1);
+        y_partitions = (size_t)((float)xybound / P_H + 1);
+        z_partitions = (size_t)((float)zbound / P_H + 1);
         total_partitions = x_partitions * y_partitions * z_partitions;
 
         partitions = (size_t *) malloc(total_partitions * num_particles * sizeof(size_t));
@@ -49,9 +49,9 @@ struct Box {
     }
 
     void add_particle(size_t id, glm::vec3 pos) {
-        int x = (pos.x + EPS) / P_H;
-        int y = (pos.y + EPS) / P_H;
-        int z = (pos.z + EPS) / P_H;
+        int x = (int)((pos.x + EPS) / P_H);
+        int y = (int)((pos.y + EPS) / P_H);
+        int z = (int)((pos.z + EPS) / P_H);
 
         if (x >= 0 && (size_t)x < x_partitions &&
             y >= 0 && (size_t)y < y_partitions &&
@@ -122,7 +122,7 @@ struct ParticleSystem {
         neighbors     = (size_t *)   malloc(num_particles * MAX_NEIGHBORS * sizeof(size_t));
         num_neighbors = (size_t *)   malloc(num_particles * sizeof(size_t));
 
-        box = new Box(XYBOUND, ZBOUND, num_particles);
+        box = new Box((size_t)XYBOUND, (size_t)ZBOUND, num_particles);
 
         spawn_init();
     }
@@ -133,7 +133,7 @@ struct ParticleSystem {
         PSYSTEM_INIT_SPAWN(num_particles++);
 
         free(box);
-        box = new Box(XYBOUND, ZBOUND, num_particles);
+        box = new Box((size_t)XYBOUND, (size_t)ZBOUND, num_particles);
         
         t = 0;
         shake_t = 0;

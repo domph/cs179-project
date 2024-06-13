@@ -99,7 +99,7 @@ GLuint ParticleSimulator::render(ParticleSystem *system) {
     // Draw
     buffer_manager.bind();
     glBindVertexArray(vao);
-    glDrawArrays(GL_POINTS, 0, num_particles);
+    glDrawArrays(GL_POINTS, 0, (GLsizei)num_particles);
     glBindVertexArray(0);
     buffer_manager.unbind();
 

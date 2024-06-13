@@ -9,7 +9,6 @@
 
 #include <iostream>
 #include <algorithm>
-#include <format>
 #ifdef __APPLE__
 #include <OpenGL/gl3.h>
 #include <OpenGl/gl3ext.h>
@@ -297,7 +296,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 void process_input(GLFWwindow *window, double dt) {
     if (g_enable_camera) {
-        g_camera.process_inputs(window, dt);
+        g_camera.process_inputs(window, (float)dt);
     }
     glm::mat4 view_proj_matrix = g_proj_matrix * g_camera.get_view();
     glUniformMatrix4fv(g_proj_matrix_loc, 1, GL_FALSE, &view_proj_matrix[0][0]);
@@ -508,9 +507,9 @@ void build_scene() {
 
     g_proj_matrix = glm::perspective(glm::radians(45.0f), (float)size.x / (float)size.y, 0.1f, 100.0f);
     if (g_particle_simulator == nullptr) {
-        g_particle_simulator = new ParticleSimulator(size.x, size.y);
+        g_particle_simulator = new ParticleSimulator((int)size.x, (int)size.y);
     }
-    g_particle_simulator->update_viewport(size.x, size.y);
+    g_particle_simulator->update_viewport((int)size.x, (int)size.y);
 
     // Render
     ImGui::Image(
