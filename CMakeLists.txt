@@ -30,6 +30,7 @@ set(SRC_LIST
     "src/physics.cpp"
     "src/camera.cpp"
     "src/buffer_manager.cpp"
+    "src/test.cu"
 )
 
 set(IMGUI_SRC_LIST
@@ -47,8 +48,11 @@ add_executable(${PROJECT_NAME} ${SRC_LIST})
 
 # Compiler flags for strict mode
 if (ENABLE_STRICT_MODE)
-    if(MSVC)
-        target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
+    if (MSVC)
+        target_compile_options(${PROJECT_NAME} PRIVATE
+            $<$<COMPILE_LANGUAGE:CXX>:/W4 /WX>
+            $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/W4 -Xcompiler=/WX>
+        )
     else()
         target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
     endif()

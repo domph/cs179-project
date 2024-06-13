@@ -6,6 +6,7 @@
 #include "timer.h"
 #include "camera.h"
 #include "fonts.h"
+#include "test.cuh"
 
 #include <iostream>
 #include <algorithm>
@@ -557,6 +558,10 @@ void check_dpi(GLFWwindow *window) {
 //----------------------------------------
 
 int main() {
+    // cuda test call
+    call_cuda_hello();
+
+    // Initialize GLFW
     if (glfwInit() == GLFW_FALSE) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return -1;
