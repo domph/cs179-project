@@ -1,6 +1,6 @@
-﻿#define GLM_ENABLE_EXPERIMENTAL
+#define GLM_ENABLE_EXPERIMENTAL
 
-#include "physics.h"
+#include "physics.cuh"
 #include <cmath>
 #include <glm/gtx/norm.hpp>
 
@@ -20,6 +20,13 @@ glm::vec3 calcWspiky(glm::vec3 i, glm::vec3 j) {
     }
 }
 
+void applyBodyForces(ParticleSystem *psystem) {
+    for (size_t i = 0; i < psystem->num_particles; i++) {
+        psystem->vel[i].z -= G * DT;
+        psystem->pos[i] = psystem->prevpos[i] + DT * psystem->vel[i];
+    }
+}
+
 void calcPartition(ParticleSystem *psystem) {
     Box *box = psystem->box;
     box->clear_partitions();
@@ -29,15 +36,11 @@ void calcPartition(ParticleSystem *psystem) {
     }
 }
 
-/* This function has been designed to be easily parallelized as a CUDA kernel
-   as each iteration of the outermost for-loop over the particles can be
-   computed independently. Moreover, the various particle properties are all
-   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
-   and so they can be accessed by GPU threads in a coalesced fashion with
-   minimal bank conflicts. */
-void kNearestNeighbors(ParticleSystem *psystem) {
+__global__ void kNearestNeighbors(ParticleSystem *psystem) {
     Box *box = psystem->box;
-    for (size_t p = 0; p < psystem->num_particles; p++) {
+
+    size_t p = blockIdx.x * blockDim.x + threadIdx.x;
+    while (p < psystem->num_particles) {
         glm::vec3 pi = psystem->pos[p];
 
         // Discretize particle positions into a 3D grid of size P_H
@@ -85,30 +88,14 @@ void kNearestNeighbors(ParticleSystem *psystem) {
             }
         }
         psystem->num_neighbors[p] = num_neighbors;
+
+        p += blockDim.x * gridDim.x;
     }
 }
 
-/* This function has been designed to be easily parallelized as a CUDA kernel
-   as each iteration of the outermost for-loop over the particles can be
-   computed independently. Moreover, the various particle properties are all
-   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
-   and so they can be accessed by GPU threads in a coalesced fashion with
-   minimal bank conflicts. */
-void applyBodyForces(ParticleSystem *psystem) {
-    for (size_t i = 0; i < psystem->num_particles; i++) {
-        psystem->vel[i].z -= G * DT;
-        psystem->pos[i] = psystem->prevpos[i] + DT * psystem->vel[i];
-    }
-}
-
-/* This function has been designed to be easily parallelized as a CUDA kernel
-   as each iteration of the outermost for-loop over the particles can be
-   computed independently. Moreover, the various particle properties are all
-   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
-   and so they can be accessed by GPU threads in a coalesced fashion with
-   minimal bank conflicts. */
-void calcLambda(ParticleSystem *psystem) {
-    for (size_t i = 0; i < psystem->num_particles; i++) {
+__global__ void calcLambda(ParticleSystem *psystem) {
+    size_t i = blockIdx.x * blockDim.x + threadIdx.x;
+    while (i < psystem->num_particles) {
         glm::vec3 pi = psystem->pos[i];
 
         glm::vec3 gradPjCi;  // Temporary store for calculated gradients
@@ -135,17 +122,14 @@ void calcLambda(ParticleSystem *psystem) {
         float denominator = sumGradPkCi2 + RELAXATION_EPS;  // eq (11)
 
         psystem->lambda[i] = -numerator / denominator;  // eq (11)
+
+        i += blockDim.x * gridDim.x;
     }
 }
 
-/* This function has been designed to be easily parallelized as a CUDA kernel
-   as each iteration of the outermost for-loop over the particles can be
-   computed independently. Moreover, the various particle properties are all
-   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
-   and so they can be accessed by GPU threads in a coalesced fashion with
-   minimal bank conflicts. */
-void calcDeltaPos(ParticleSystem *psystem) {
-    for (size_t i = 0; i < psystem->num_particles; i++) {
+__global__ void calcDeltaPos(ParticleSystem *psystem) {
+    size_t i = blockIdx.x * blockDim.x + threadIdx.x;
+    while (i < psystem->num_particles) {
         glm::vec3 pi = psystem->pos[i];
         float lambda_i = psystem->lambda[i];
 
@@ -167,66 +151,51 @@ void calcDeltaPos(ParticleSystem *psystem) {
             dpi += (lambda_i + lambda_j + sCorr) * calcWspiky(pi, pj);  // eq (14)
         }
         psystem->deltapos[i] = dpi * RHO_0_INV;  // eq (14)
+
+        i += blockDim.x * gridDim.x;
     }
 }
 
-/* This function has been designed to be easily parallelized as a CUDA kernel
-   as each iteration of the outermost for-loop over the particles can be
-   computed independently. Moreover, the various particle properties are all
-   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
-   and so they can be accessed by GPU threads in a coalesced fashion with
-   minimal bank conflicts. */
-void updatePos(ParticleSystem *psystem) {
-    for (size_t i = 0; i < psystem->num_particles; i++) {
+__global__ void updatePos(ParticleSystem *psystem) {
+    size_t i = blockIdx.x * blockDim.x + threadIdx.x;
+    while (i < psystem->num_particles) {
         psystem->pos[i] += psystem->deltapos[i];
+
+        i += blockDim.x * gridDim.x;
     }
 }
 
-/* This function has been designed to be easily parallelized as a CUDA kernel
-   as each iteration of the outermost for-loop over the particles can be
-   computed independently. Moreover, the various particle properties are all
-   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
-   and so they can be accessed by GPU threads in a coalesced fashion with
-   minimal bank conflicts. */
-void savePrevPos(ParticleSystem *psystem) {
-    for (size_t i = 0; i < psystem->num_particles; i++) {
+__global__ void savePrevPos(ParticleSystem *psystem) {
+    size_t i = blockIdx.x * blockDim.x + threadIdx.x;
+    while (i < psystem->num_particles) {
         psystem->prevpos[i] = psystem->pos[i];
+
+        i += blockDim.x * gridDim.x;
     }
 }
 
-/* This function has been designed to be easily parallelized as a CUDA kernel
-   as each iteration of the outermost for-loop over the particles can be
-   computed independently. Moreover, the various particle properties are all
-   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
-   and so they can be accessed by GPU threads in a coalesced fashion with
-   minimal bank conflicts. */
-void calcVel(ParticleSystem *psystem) {
-    for (size_t i = 0; i < psystem->num_particles; i++) {
+__global__ void calcVel(ParticleSystem *psystem) {
+    size_t i = blockIdx.x * blockDim.x + threadIdx.x;
+    while (i < psystem->num_particles) {
         psystem->vel[i] = (psystem->pos[i] - psystem->prevpos[i]) / DT;
         psystem->nextvel[i] = psystem->vel[i];
+
+        i += blockDim.x * gridDim.x;
     }
 }
 
-/* This function has been designed to be easily parallelized as a CUDA kernel
-   as each iteration of the outermost for-loop over the particles can be
-   computed independently. Moreover, the various particle properties are all
-   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
-   and so they can be accessed by GPU threads in a coalesced fashion with
-   minimal bank conflicts. */
-void updateVel(ParticleSystem *psystem) {
-    for (size_t i = 0; i < psystem->num_particles; i++) {
+__global__ void updateVel(ParticleSystem *psystem) {
+    size_t i = blockIdx.x * blockDim.x + threadIdx.x;
+    while (i < psystem->num_particles) {
         psystem->vel[i] = psystem->nextvel[i];
+
+        i += blockDim.x * gridDim.x;
     }
 }
 
-/* This function has been designed to be easily parallelized as a CUDA kernel
-   as each iteration of the outermost for-loop over the particles can be
-   computed independently. Moreover, the various particle properties are all
-   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
-   and so they can be accessed by GPU threads in a coalesced fashion with
-   minimal bank conflicts. */
-void applyCollisionResponse(ParticleSystem *psystem) {
-    for (size_t i = 0; i < psystem->num_particles; i++) {   
+__global__ void applyCollisionResponse(ParticleSystem *psystem, size_t xybound, size_t zbound) {
+    size_t i = blockIdx.x * blockDim.x + threadIdx.x;
+    while (i < psystem->num_particles) {
         if (psystem->pos[i].x < SHAKE(psystem->shake_t)) {
             psystem->pos[i].x = 2*SHAKE(psystem->shake_t) -psystem->pos[i].x;
             psystem->vel[i].x *= -1;
@@ -253,17 +222,14 @@ void applyCollisionResponse(ParticleSystem *psystem) {
             psystem->pos[i].z = 2*psystem->box->zbound - psystem->pos[i].z;
             psystem->vel[i].z *= -1;
         }
+
+        i += blockDim.x * gridDim.x;
     }
 }
 
-/* This function has been designed to be easily parallelized as a CUDA kernel
-   as each iteration of the outermost for-loop over the particles can be
-   computed independently. Moreover, the various particle properties are all
-   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
-   and so they can be accessed by GPU threads in a coalesced fashion with
-   minimal bank conflicts. */
-void calcVorticityViscosity(ParticleSystem *psystem) {
-    for (size_t i = 0; i < psystem->num_particles; i++) {
+__global__ void calcVorticityViscosity(ParticleSystem *psystem) {
+    size_t i = blockIdx.x * blockDim.x + threadIdx.x;
+    while (i < psystem->num_particles) {
         glm::vec3 pi = psystem->pos[i];
         glm::vec3 vi = psystem->vel[i];
 
@@ -281,17 +247,14 @@ void calcVorticityViscosity(ParticleSystem *psystem) {
         }
         psystem->nextvel[i] += XSPH_C * vXSPH; // eq (17)
         psystem->vorticity[i] = wi;
+
+        i += blockDim.x * gridDim.x;
     }
 }
 
-/* This function has been designed to be easily parallelized as a CUDA kernel
-   as each iteration of the outermost for-loop over the particles can be
-   computed independently. Moreover, the various particle properties are all
-   contained within arrays in the ParticleSystem struct (e.g. pos[], vel[])
-   and so they can be accessed by GPU threads in a coalesced fashion with
-   minimal bank conflicts. */
-void applyVorticityCorrection(ParticleSystem *psystem) {
-    for (size_t i = 0; i < psystem->num_particles; i++) {
+__global__ void applyVorticityCorrection(ParticleSystem *psystem) {
+    size_t i = blockIdx.x * blockDim.x + threadIdx.x;
+    while (i < psystem->num_particles) {
         glm::vec3 pi = psystem->pos[i];
         glm::vec3 gradwi = glm::vec3(0.0f);
         glm::vec3 pj, wj;
@@ -308,27 +271,62 @@ void applyVorticityCorrection(ParticleSystem *psystem) {
         if (glm::length(gradwi) > EPS) gradwi = glm::normalize(gradwi);
 
         psystem->nextvel[i] += DT * VORTICITY_EPS * glm::cross(gradwi, psystem->vorticity[i]);
+
+        i += blockDim.x * gridDim.x;
     }
 }
 
-void update(ParticleSystem *psystem, bool shake) {
+void cudaUpdate(ParticleSystem *psystem, ParticleSystem *gpu_psystem, bool shake) {
+    // performed on CPU
     applyBodyForces(psystem);
+
+    cudaMemcpy(gpu_psystem, psystem, offsetof(ParticleSystem, pos), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->pos,           psystem->pos,           psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->deltapos,      psystem->deltapos,      psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->prevpos,       psystem->prevpos,       psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->vel,           psystem->vel,           psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->nextvel,       psystem->nextvel,       psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->vorticity,     psystem->vorticity,     psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->lambda,        psystem->lambda,        psystem->num_particles * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->neighbors,     psystem->neighbors,     psystem->num_particles * MAX_NEIGHBORS * sizeof(size_t), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->num_neighbors, psystem->num_neighbors, psystem->num_particles * sizeof(size_t), cudaMemcpyHostToDevice);
+    
+    // performed on CPU
     calcPartition(psystem);
-    kNearestNeighbors(psystem);
+
+    cudaMemcpy(gpu_psystem->box, psystem->box, offsetof(Box, partitions), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->box->partitions, psystem->box->partitions,
+        psystem->box->total_partitions * psystem->num_particles * sizeof(size_t), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->box->partition_sizes, psystem->box->partition_sizes,
+        psystem->box->total_partitions * sizeof(size_t), cudaMemcpyHostToDevice);
+
+    kNearestNeighbors<<<blocks, threads_per_block>>>(gpu_psystem);
 
     for (size_t i = 0; i < SOLVER_ITERATIONS; i++) {
-        calcLambda(psystem);
-        calcDeltaPos(psystem);
-        updatePos(psystem);
-        applyCollisionResponse(psystem);
+        calcLambda<<<blocks, threads_per_block>>>(gpu_psystem);
+        calcDeltaPos<<<blocks, threads_per_block>>>(gpu_psystem);
+        updatePos<<<blocks, threads_per_block>>>(gpu_psystem);
+        applyCollisionResponse<<<blocks, threads_per_block>>>(gpu_psystem);
     }
 
-    calcVel(psystem);
-    calcVorticityViscosity(psystem);
-    applyVorticityCorrection(psystem);
-    updateVel(psystem);
+    calcVel<<<blocks, threads_per_block>>>(gpu_psystem);
+    calcVorticityViscosity<<<blocks, threads_per_block>>>(gpu_psystem);
+    applyVorticityCorrection<<<blocks, threads_per_block>>>(gpu_psystem);
+    updateVel<<<blocks, threads_per_block>>>(gpu_psystem);
 
-    savePrevPos(psystem);
+    savePrevPos<<<blocks, threads_per_block>>>(gpu_psystem);
+
+
+    cudaMemcpy(psystem->pos,           gpu_psystem->pos,           psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(psystem->deltapos,      gpu_psystem->deltapos,      psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(psystem->prevpos,       gpu_psystem->prevpos,       psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(psystem->vel,           gpu_psystem->vel,           psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(psystem->nextvel,       gpu_psystem->nextvel,       psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(psystem->vorticity,     gpu_psystem->vorticity,     psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(psystem->lambda,        gpu_psystem->lambda,        psystem->num_particles * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(psystem->neighbors,     gpu_psystem->neighbors,     psystem->num_particles * MAX_NEIGHBORS * sizeof(size_t), cudaMemcpyDeviceToHost);
+    cudaMemcpy(psystem->num_neighbors, gpu_psystem->num_neighbors, psystem->num_particles * sizeof(size_t), cudaMemcpyDeviceToHost);
+
 
     psystem->t += DT;
     if (shake) psystem->shake_t += DT;

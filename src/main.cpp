@@ -2,11 +2,11 @@
 #define GL_SILENCE_DEPRECATION
 #include "shaders.h"
 #include "physics.h"
+#include "physics.cuh"
 #include "particle_simulator.h"
 #include "timer.h"
 #include "camera.h"
 #include "fonts.h"
-#include "test.cuh"
 
 #include <iostream>
 #include <algorithm>
@@ -37,6 +37,7 @@ constexpr int START_HEIGHT = 1300;
 //----------------------------------------
 
 ParticleSystem *g_psystem;
+ParticleSystem *g_gpu_psystem;
 ParticleSimulator *g_particle_simulator;
 glm::mat4 g_proj_matrix;
 GLint g_proj_matrix_loc;
@@ -44,6 +45,7 @@ Timer g_timer;
 
 bool g_enable_camera = false;
 bool g_enable_physics = true;
+bool g_use_gpu = true;
 bool g_shake = false;
 bool g_vsync = true;
 float g_point_size = 4.0f;
@@ -558,9 +560,6 @@ void check_dpi(GLFWwindow *window) {
 //----------------------------------------
 
 int main() {
-    // cuda test call
-    call_cuda_hello();
-
     // Initialize GLFW
     if (glfwInit() == GLFW_FALSE) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -653,6 +652,23 @@ int main() {
     // Initialize physics
     g_psystem = new ParticleSystem();
 
+    cudaMalloc(&g_gpu_psystem, sizeof(ParticleSystem));
+    cudaMalloc(&g_gpu_psystem->pos,           g_psystem->num_particles * sizeof(glm::vec3));
+    cudaMalloc(&g_gpu_psystem->deltapos,      g_psystem->num_particles * sizeof(glm::vec3));
+    cudaMalloc(&g_gpu_psystem->prevpos,       g_psystem->num_particles * sizeof(glm::vec3));
+    cudaMalloc(&g_gpu_psystem->vel,           g_psystem->num_particles * sizeof(glm::vec3));
+    cudaMalloc(&g_gpu_psystem->nextvel,       g_psystem->num_particles * sizeof(glm::vec3));
+    cudaMalloc(&g_gpu_psystem->vorticity,     g_psystem->num_particles * sizeof(glm::vec3));
+    cudaMalloc(&g_gpu_psystem->lambda,        g_psystem->num_particles * sizeof(float));
+    cudaMalloc(&g_gpu_psystem->neighbors,     g_psystem->num_particles * MAX_NEIGHBORS * sizeof(size_t));
+    cudaMalloc(&g_gpu_psystem->num_neighbors, g_psystem->num_particles * sizeof(size_t));
+
+    cudaMalloc(&g_gpu_psystem->box, sizeof(Box));
+    cudaMalloc(&g_gpu_psystem->box->partitions,
+        g_psystem->box->total_partitions * g_psystem->num_particles * sizeof(size_t));
+    cudaMalloc(&g_gpu_psystem->box->partition_sizes,
+        g_psystem->box->total_partitions * sizeof(size_t));
+
     Timer frame_timer;
 
     // Main loop
@@ -671,7 +687,11 @@ int main() {
 
         // Physics
         if (g_enable_physics) {
-            update(g_psystem, g_shake);
+            if (g_use_gpu) {
+                cudaUpdate(g_psystem, g_gpu_psystem, g_shake);                
+            } else {
+                update(g_psystem, g_shake);
+            }
         }
         
         // Imgui

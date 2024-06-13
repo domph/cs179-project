@@ -11,14 +11,15 @@
 struct Box {
     size_t xybound;
     size_t zbound;
-    size_t *partitions;
-    size_t *partition_sizes;
 
     size_t x_partitions;
     size_t y_partitions;
     size_t z_partitions;
     size_t total_partitions;
     size_t num_particles;
+
+    size_t *partitions;
+    size_t *partition_sizes;
 
     Box(size_t xybound, size_t zbound, size_t num_particles) : xybound(xybound), zbound(zbound), num_particles(num_particles) {
         x_partitions = (size_t)((float)xybound / P_H + 1);

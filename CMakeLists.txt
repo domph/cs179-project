@@ -30,7 +30,7 @@ set(SRC_LIST
     "src/physics.cpp"
     "src/camera.cpp"
     "src/buffer_manager.cpp"
-    "src/test.cu"
+    "src/physics.cu"
 )
 
 set(IMGUI_SRC_LIST
