@@ -7,7 +7,7 @@
 #include <GL/glew.h>
 #endif
 #include <glm/glm.hpp>
-#include "particle.h"
+#include "particle.cuh"
 #include "buffer_manager.h"
 
 struct ParticleData {

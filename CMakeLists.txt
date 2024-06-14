@@ -31,6 +31,7 @@ set(SRC_LIST
     "src/camera.cpp"
     "src/buffer_manager.cpp"
     "src/physics.cu"
+    "src/particle.cu"
 )
 
 set(IMGUI_SRC_LIST
@@ -51,12 +52,23 @@ if (ENABLE_STRICT_MODE)
     if (MSVC)
         target_compile_options(${PROJECT_NAME} PRIVATE
             $<$<COMPILE_LANGUAGE:CXX>:/W4 /WX>
-            $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/W4 -Xcompiler=/WX>
+            #$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/W4 -Xcompiler=/WX -dc -diag-suppress 20012>
+            $<$<COMPILE_LANGUAGE:CUDA>:-diag-suppress 20012> #-dc 
         )
     else()
         target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
     endif()
 endif()
+
+# CUDA properties
+set_target_properties(${PROJECT_NAME}
+   PROPERTIES
+       CUDA_SEPARABLE_COMPILATION ON
+       CUDA_RESOLVE_DEVICE_SYMBOLS ON
+)
+
+# Add CUDA include files
+include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 # Add GLM include files
 include_directories(lib/glm-1.0.1)

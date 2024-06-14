@@ -45,7 +45,7 @@ Timer g_timer;
 
 bool g_enable_camera = false;
 bool g_enable_physics = true;
-bool g_use_gpu = true;
+bool g_use_gpu = false;
 bool g_shake = false;
 bool g_vsync = true;
 float g_point_size = 4.0f;
@@ -494,6 +494,8 @@ void build_control_panel() {
         if (ImGui::Button("Add Parcel", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
             // std::cout << "Adding parcel to pos: " << pos_x << ", " << pos_y << std::endl;
             g_psystem->spawn_parcel(pos_x, pos_y, pos_z, vel_z, r);
+
+            // cudaReallocPsystem(g_psystem, g_gpu_psystem);
         }
     }
     ImGui::End();
@@ -651,23 +653,7 @@ int main() {
 
     // Initialize physics
     g_psystem = new ParticleSystem();
-
-    cudaMalloc(&g_gpu_psystem, sizeof(ParticleSystem));
-    cudaMalloc(&g_gpu_psystem->pos,           g_psystem->num_particles * sizeof(glm::vec3));
-    cudaMalloc(&g_gpu_psystem->deltapos,      g_psystem->num_particles * sizeof(glm::vec3));
-    cudaMalloc(&g_gpu_psystem->prevpos,       g_psystem->num_particles * sizeof(glm::vec3));
-    cudaMalloc(&g_gpu_psystem->vel,           g_psystem->num_particles * sizeof(glm::vec3));
-    cudaMalloc(&g_gpu_psystem->nextvel,       g_psystem->num_particles * sizeof(glm::vec3));
-    cudaMalloc(&g_gpu_psystem->vorticity,     g_psystem->num_particles * sizeof(glm::vec3));
-    cudaMalloc(&g_gpu_psystem->lambda,        g_psystem->num_particles * sizeof(float));
-    cudaMalloc(&g_gpu_psystem->neighbors,     g_psystem->num_particles * MAX_NEIGHBORS * sizeof(size_t));
-    cudaMalloc(&g_gpu_psystem->num_neighbors, g_psystem->num_particles * sizeof(size_t));
-
-    cudaMalloc(&g_gpu_psystem->box, sizeof(Box));
-    cudaMalloc(&g_gpu_psystem->box->partitions,
-        g_psystem->box->total_partitions * g_psystem->num_particles * sizeof(size_t));
-    cudaMalloc(&g_gpu_psystem->box->partition_sizes,
-        g_psystem->box->total_partitions * sizeof(size_t));
+    cudaMallocPsystem(g_psystem, &g_gpu_psystem);
 
     Timer frame_timer;
 
@@ -709,6 +695,8 @@ int main() {
         glfwSwapBuffers(window);
         glfwPollEvents();    
     }
+
+    std::cout << "we are done" << std::endl;
 
     // Clean up
     delete g_psystem;
