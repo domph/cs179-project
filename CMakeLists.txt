@@ -31,7 +31,6 @@ set(SRC_LIST
     "src/camera.cpp"
     "src/buffer_manager.cpp"
     "src/physics.cu"
-    "src/particle.cu"
 )
 
 set(IMGUI_SRC_LIST

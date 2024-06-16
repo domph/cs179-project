@@ -82,3 +82,8 @@
 
 #define XSPH_C 0.01f
 #define VORTICITY_EPS 3.0f
+
+
+/* CUDA constants */
+#define BLOCKS 64
+#define THREADS_PER_BLOCK 128

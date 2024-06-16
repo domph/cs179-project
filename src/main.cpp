@@ -45,9 +45,9 @@ Timer g_timer;
 
 bool g_enable_camera = false;
 bool g_enable_physics = true;
-bool g_use_gpu = false;
+bool g_use_gpu = true;
 bool g_shake = false;
-bool g_vsync = true;
+bool g_vsync = false;
 float g_point_size = 4.0f;
 Camera g_camera(glm::vec3(-15, -15, 15), glm::vec3(0, 0, 1), 315, -12);
 
@@ -408,6 +408,7 @@ void build_control_panel() {
 
     if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Checkbox("Physics", &g_enable_physics);
+        ImGui::Checkbox("Use GPU", &g_use_gpu);
         ImGui::Checkbox("Shaking", &g_shake);
         
         if (ImGui::Checkbox("VSync", &g_vsync)) {
@@ -495,7 +496,7 @@ void build_control_panel() {
             // std::cout << "Adding parcel to pos: " << pos_x << ", " << pos_y << std::endl;
             g_psystem->spawn_parcel(pos_x, pos_y, pos_z, vel_z, r);
 
-            // cudaReallocPsystem(g_psystem, g_gpu_psystem);
+            cudaReallocPsystem(g_psystem, g_gpu_psystem);
         }
     }
     ImGui::End();
@@ -653,7 +654,8 @@ int main() {
 
     // Initialize physics
     g_psystem = new ParticleSystem();
-    cudaMallocPsystem(g_psystem, &g_gpu_psystem);
+    g_gpu_psystem = new ParticleSystem();   
+    cudaMallocPsystem(g_psystem, g_gpu_psystem);
 
     Timer frame_timer;
 
