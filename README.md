@@ -27,7 +27,7 @@ This project requires the following tools:
 
 Platform-specific instructions for setting up the required toolchain are provided below. 
 
-** Only compilers supported by CUDA work (these are detailed below for each platform)
+** For non-macOS, only compilers supported by CUDA are supported (these are detailed below for each platform)
 
 ## Platform-Specific Toolchain Setup & Compilation Instructions
 
