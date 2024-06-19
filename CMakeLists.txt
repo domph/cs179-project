@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
-project(cs179-project LANGUAGES C CXX CUDA)
+if (NOT APPLE)
+    project(cs179-project LANGUAGES C CXX CUDA)
+else()
+    project(cs179-project LANGUAGES C CXX)
+endif()
 
 ##### CONFIG #####
 set(ENABLE_DEBUG_MODE ON)       # ON = Includes debugging symbols, but less optimizations | OFF = No debug symbols, but more optimizations 
@@ -65,9 +69,11 @@ if (ENABLE_STRICT_MODE)
     endif()
 endif()
 
-target_compile_options(${PROJECT_NAME} PRIVATE
-    $<$<COMPILE_LANGUAGE:CUDA>:-diag-suppress 20012>
-)
+if (NOT APPLE)
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        $<$<COMPILE_LANGUAGE:CUDA>:-diag-suppress 20012>
+    )
+endif()
 
 # CUDA properties
 set_target_properties(${PROJECT_NAME}

@@ -624,11 +624,8 @@ int main() {
     
     int cuda_device_count = 0;
     if (cudaGetDeviceCount(&cuda_device_count) != 0) {
-        std::cerr << "Failed to get CUDA device count" << std::endl;
-        return -1;
-    }
-
-    if (cuda_device_count > 0) {
+        std::cout << "No CUDA devices found" << std::endl;
+    } else if (cuda_device_count > 0) {
         g_has_gpu = true;
         std::cout << "CUDA device count: " << cuda_device_count << std::endl;
     } else {
