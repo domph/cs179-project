@@ -10,7 +10,7 @@ OpenGL 4.1 is required to run this program.
 
 This folder contains the source code to compile and run the program. However, we include pre-built binaries for Windows (x64) and macOS in the `bin` folder for convenience. These binaries have been tested on a variety of devices without any failure; should they for whatever reason not work, compiling from the source directly and running should work instead.
 
-To run the macOS binary, you first have to make it executable via `chmod +x ./cs179-project-mac`. Then, follow these instructions to run it (since the app isn't registered with Apple): [https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac). 
+To run the macOS binary, you first have to make it executable via `chmod +x ./cs179-mac`. Then, follow these instructions to run it (since the app isn't registered with Apple): [https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac). 
 
 For macOS, GPU acceleration is not supported since NVIDIA has long since deprecated the NVIDIA CUDA Toolkit for macOS (and indeed, no modern macOS device has an NVIDIA card).
 
