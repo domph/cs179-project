@@ -1,6 +1,5 @@
 #define GL_SILENCE_DEPRECATION
 #include "particle_simulator.h"
-#include "physics.cuh"
 
 void ParticleSimulator::create_vbo(size_t size) {
     glGenVertexArrays(1, &vao);
@@ -10,8 +9,9 @@ void ParticleSimulator::create_vbo(size_t size) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     // Create persistent mapped buffer
-    glBufferData(GL_ARRAY_BUFFER, size * sizeof(float) * 6, 0, GL_DYNAMIC_DRAW);
-    buffer = new float[size * 6];
+    const size_t buffer_size = size * sizeof(ParticleData);
+    glBufferData(GL_ARRAY_BUFFER, buffer_size, 0, GL_DYNAMIC_DRAW);
+    buffer = new ParticleData[buffer_size];
     // glBufferStorage(GL_ARRAY_BUFFER, buffer_size, 0,
     //     GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
     // buffer = (float*)glMapBufferRange(GL_ARRAY_BUFFER, 0, buffer_size,
@@ -24,11 +24,11 @@ void ParticleSimulator::create_vbo(size_t size) {
 
     // Set attributes
     // Position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ParticleData), (void*)0);
     glEnableVertexAttribArray(0);
 
     // Velocity
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)(sizeof(float) * 3 * size));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ParticleData), (void*)(offsetof(ParticleData, vel)));
     glEnableVertexAttribArray(1);
 
     // Unbind
@@ -67,7 +67,7 @@ void ParticleSimulator::check_size(size_t new_size) {
     }
 }
 
-GLuint ParticleSimulator::render(ParticleSystem *system, ParticleSystem *gpu_system, bool using_gpu) {
+GLuint ParticleSimulator::render(ParticleSystem *system) {
     // Wait for GPU to finish using the buffer
     if (sync_obj) {
         GLenum waitReturn = GL_UNSIGNALED;
@@ -83,26 +83,17 @@ GLuint ParticleSimulator::render(ParticleSystem *system, ParticleSystem *gpu_sys
     check_size(system->num_particles);
 
     // Update data
-    if (using_gpu) {
-        cudaCopyToRenderBuffer(system, gpu_system, (float*)buffer);
-    } else {
-        for (size_t i = 0; i < num_particles; ++i) {
-            buffer[i * 3 + 0] = system->pos[i].x;
-            buffer[i * 3 + 1] = system->pos[i].y;
-            buffer[i * 3 + 2] = system->pos[i].z;
-        }
-
-        float *vel_buffer = buffer + num_particles * 3;
-        for (size_t i = 0; i < num_particles; ++i) {
-            vel_buffer[i * 3 + 0] = system->vel[i].x;
-            vel_buffer[i * 3 + 1] = system->vel[i].y;
-            vel_buffer[i * 3 + 2] = system->vel[i].z;
-        }
+    for (size_t i = 0; i < num_particles; ++i) {
+        buffer[i].pos[0] = system->pos[i].x;
+        buffer[i].pos[1] = system->pos[i].y;
+        buffer[i].pos[2] = system->pos[i].z;
+        buffer[i].vel[0] = system->vel[i].x;
+        buffer[i].vel[1] = system->vel[i].y;
+        buffer[i].vel[2] = system->vel[i].z;
     }
-    
     // Update data
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, num_particles * sizeof(float) * 6, buffer);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, num_particles * sizeof(ParticleData), buffer);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // Draw

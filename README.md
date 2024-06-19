@@ -86,7 +86,7 @@ This will generate an executable called `cs179-project` inside the `build` folde
 
 ## Results / Performance Analysis
 
-On devices where GPU mode is available, the GPU version should be able to handle significantly more particles being simulated with the frame rate (FPS) suffering.
+On devices where GPU mode is available, we can observe the improvements of the GPU version via the frame rate (FPS) increase. 
 
 Here is one data point (with the system running under medium load):
 - CPU: Intel i7-10875H

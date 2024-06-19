@@ -319,7 +319,11 @@ __global__ void cudaApplyVorticityCorrection(size_t num_particles, glm::vec3 *po
     }
 }
 
-void cudaUpdate(ParticleSystem *psystem, ParticleSystem *gpu_psystem, bool shake) {
+void cudaUpdate(ParticleSystem *psystem, ParticleSystem *gpu_psystem, bool shake, bool copy_to_device, bool copy_to_host) {
+    if (copy_to_device) {
+        cudaCopyHostToDevice(psystem, gpu_psystem);
+    }
+
     cudaApplyBodyForces<<<BLOCKS, THREADS_PER_BLOCK>>>(psystem->num_particles,
                                                        gpu_psystem->vel,
                                                        gpu_psystem->pos,
@@ -401,6 +405,16 @@ void cudaUpdate(ParticleSystem *psystem, ParticleSystem *gpu_psystem, bool shake
     cudaSavePrevPos<<<BLOCKS, THREADS_PER_BLOCK>>>(psystem->num_particles,
                                                    gpu_psystem->prevpos,
                                                    gpu_psystem->pos);
+    
+
+    cudaDeviceSynchronize();
+
+    if (copy_to_host) {
+        cudaCopyDeviceToHost(psystem, gpu_psystem);
+    } else {
+        cudaMemcpy(psystem->pos, gpu_psystem->pos, psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+        cudaMemcpy(psystem->vel, gpu_psystem->vel, psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+    }
 
     psystem->t += DT;
     if (shake) psystem->shake_t += DT;
@@ -458,9 +472,4 @@ void cudaCopyDeviceToHost(ParticleSystem *psystem, ParticleSystem *gpu_psystem) 
     cudaMemcpy(psystem->lambda,        gpu_psystem->lambda,        psystem->num_particles * sizeof(float), cudaMemcpyDeviceToHost);
     cudaMemcpy(psystem->neighbors,     gpu_psystem->neighbors,     psystem->num_particles * MAX_NEIGHBORS * sizeof(size_t), cudaMemcpyDeviceToHost);
     cudaMemcpy(psystem->num_neighbors, gpu_psystem->num_neighbors, psystem->num_particles * sizeof(size_t), cudaMemcpyDeviceToHost);
-}
-
-void cudaCopyToRenderBuffer(ParticleSystem *psystem, ParticleSystem *gpu_psystem, float *render_buffer) {
-    cudaMemcpy(render_buffer, gpu_psystem->pos, psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
-    cudaMemcpy(render_buffer + psystem->num_particles * 3, gpu_psystem->vel, psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
 }
