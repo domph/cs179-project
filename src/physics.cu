@@ -319,11 +319,7 @@ __global__ void cudaApplyVorticityCorrection(size_t num_particles, glm::vec3 *po
     }
 }
 
-void cudaUpdate(ParticleSystem *psystem, ParticleSystem *gpu_psystem, bool shake, bool copy_to_device, bool copy_to_host) {
-    if (copy_to_device) {
-        cudaCopyHostToDevice(psystem, gpu_psystem);
-    }
-
+void cudaUpdate(ParticleSystem *psystem, ParticleSystem *gpu_psystem, bool shake) {
     cudaApplyBodyForces<<<BLOCKS, THREADS_PER_BLOCK>>>(psystem->num_particles,
                                                        gpu_psystem->vel,
                                                        gpu_psystem->pos,
@@ -409,12 +405,8 @@ void cudaUpdate(ParticleSystem *psystem, ParticleSystem *gpu_psystem, bool shake
 
     cudaDeviceSynchronize();
 
-    if (copy_to_host) {
-        cudaCopyDeviceToHost(psystem, gpu_psystem);
-    } else {
-        cudaMemcpy(psystem->pos, gpu_psystem->pos, psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
-        cudaMemcpy(psystem->vel, gpu_psystem->vel, psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
-    }
+    cudaMemcpy(psystem->pos, gpu_psystem->pos, psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(psystem->vel, gpu_psystem->vel, psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
 
     psystem->t += DT;
     if (shake) psystem->shake_t += DT;
@@ -448,6 +440,20 @@ void cudaReallocPsystem(ParticleSystem *psystem, ParticleSystem *gpu_psystem) {
     cudaFree(gpu_psystem->box->partition_sizes);
 
     cudaMallocPsystem(psystem, gpu_psystem);
+}
+
+void cudaFreePsystem(ParticleSystem *gpu_psystem) {
+    cudaFree(gpu_psystem->pos);
+    cudaFree(gpu_psystem->deltapos);
+    cudaFree(gpu_psystem->prevpos);
+    cudaFree(gpu_psystem->vel);
+    cudaFree(gpu_psystem->nextvel);
+    cudaFree(gpu_psystem->vorticity);
+    cudaFree(gpu_psystem->lambda);
+    cudaFree(gpu_psystem->neighbors);
+    cudaFree(gpu_psystem->num_neighbors);
+    cudaFree(gpu_psystem->box->partitions);
+    cudaFree(gpu_psystem->box->partition_sizes);
 }
 
 void cudaCopyHostToDevice(ParticleSystem *psystem, ParticleSystem *gpu_psystem) {

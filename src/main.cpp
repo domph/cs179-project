@@ -51,8 +51,7 @@ Timer g_timer;
 bool g_enable_camera = false;
 bool g_enable_physics = true;
 bool g_use_gpu = true;
-bool g_copy_to_device = true;
-bool g_copy_to_host = false;
+bool g_use_gpu_prev = true;
 bool g_has_gpu = false;
 bool g_shake = false;
 bool g_vsync = false;
@@ -431,9 +430,18 @@ void build_control_panel() {
 
         if (ImGui::Button("Reset Container", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
             std::cout << "Resetting container" << std::endl;
-            g_psystem->respawn();
-            g_copy_to_device = true;
-            g_copy_to_host = false;
+            if (g_has_gpu && g_use_gpu) {
+                cudaCopyDeviceToHost(g_psystem, g_gpu_psystem);
+                
+                g_psystem->respawn();
+                cudaReallocPsystem(g_psystem, g_gpu_psystem);
+
+                cudaCopyHostToDevice(g_psystem, g_gpu_psystem);
+
+            } else {
+                g_psystem->respawn();
+                if (g_has_gpu) cudaReallocPsystem(g_psystem, g_gpu_psystem);
+            }
         }
         ImGui::Spacing();
     }
@@ -506,9 +514,12 @@ void build_control_panel() {
         ImGui::Spacing();
 
         if (ImGui::Button("Add Parcel", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+#ifdef __APPLE__
+            g_psystem->spawn_parcel(pos_x, pos_y, pos_z, vel_z, r);
+#else
             // Scenarios under which the subsequent tick will still call cudaUpdate(),
             // so we need to update the device memory
-            if (g_use_gpu || g_copy_to_host) {
+            if (g_has_gpu && g_use_gpu) {
                 cudaCopyDeviceToHost(g_psystem, g_gpu_psystem);
                 
                 g_psystem->spawn_parcel(pos_x, pos_y, pos_z, vel_z, r);
@@ -517,8 +528,9 @@ void build_control_panel() {
                 cudaCopyHostToDevice(g_psystem, g_gpu_psystem);
             } else {
                 g_psystem->spawn_parcel(pos_x, pos_y, pos_z, vel_z, r);
-                cudaReallocPsystem(g_psystem, g_gpu_psystem);
+                if (g_has_gpu) cudaReallocPsystem(g_psystem, g_gpu_psystem);
             }
+#endif
         }
     }
     ImGui::End();
@@ -622,6 +634,7 @@ int main() {
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
     std::cout << "OpenGL Shading Language Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
     
+#ifndef __APPLE__
     int cuda_device_count = 0;
     if (cudaGetDeviceCount(&cuda_device_count) != 0) {
         std::cout << "No CUDA devices found" << std::endl;
@@ -631,6 +644,7 @@ int main() {
     } else {
         std::cout << "No CUDA devices found" << std::endl;
     }
+#endif
 
     // Set callbacks callback
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);  
@@ -686,12 +700,13 @@ int main() {
 
     // Initialize physics
     g_psystem = new ParticleSystem();
+#ifndef __APPLE__
     if (g_has_gpu) {
         g_gpu_psystem = (ParticleSystem *) malloc(sizeof(ParticleSystem));
         g_gpu_psystem->box = (Box *) malloc(sizeof(Box));
         cudaMallocPsystem(g_psystem, g_gpu_psystem);
     }
-    
+#endif
 
     Timer frame_timer;
 
@@ -710,30 +725,31 @@ int main() {
         process_input(window, dt);
 
         // Physics
+#ifdef __APPLE__
+        if (g_enable_physics) {
+            update(g_psystem, g_shake);
+        }
+#else
         if (g_enable_physics) {
             if (g_has_gpu) {
                 if (g_use_gpu) {
-                    if (g_copy_to_device) {
-                        cudaUpdate(g_psystem, g_gpu_psystem, g_shake, true, false);
-                        g_copy_to_device = false;
-                        g_copy_to_host = true;
-                    } else {
-                        cudaUpdate(g_psystem, g_gpu_psystem, g_shake, false, false);
+                    if (g_use_gpu_prev) {
+                        cudaCopyHostToDevice(g_psystem, g_gpu_psystem);
+                        g_use_gpu_prev = false;
                     }
+                    cudaUpdate(g_psystem, g_gpu_psystem, g_shake);
                 } else {
-                    if (g_copy_to_host) {
-                        cudaUpdate(g_psystem, g_gpu_psystem, g_shake, false, true);
-                        g_copy_to_host = false;
-                        g_copy_to_device = true;
-                    } else {
-                        update(g_psystem, g_shake);
+                    if (!g_use_gpu_prev) {
+                        cudaCopyDeviceToHost(g_psystem, g_gpu_psystem);
+                        g_use_gpu_prev = true;
                     }
+                    update(g_psystem, g_shake);
                 }
             } else {
                 update(g_psystem, g_shake);
             }
         }
-        
+#endif
         // Imgui
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -752,7 +768,13 @@ int main() {
 
     // Clean up
     delete g_psystem;
-    // cudaFreePsystem(g_gpu_psystem);
+#ifndef __APPLE__
+    if (g_has_gpu) {
+        cudaFreePsystem(g_gpu_psystem);
+        free(g_gpu_psystem->box);
+        free(g_gpu_psystem);
+    }
+#endif
     delete g_particle_simulator;
 
     ImGui_ImplOpenGL3_Shutdown();
