@@ -50,8 +50,8 @@ Timer g_timer;
 
 bool g_enable_camera = false;
 bool g_enable_physics = true;
-bool g_use_gpu = true;
-bool g_use_gpu_prev = true;
+bool g_use_gpu = false;
+bool g_use_gpu_prev = false;
 bool g_has_gpu = false;
 bool g_shake = false;
 bool g_vsync = false;
@@ -644,6 +644,8 @@ int main() {
         std::cout << "No CUDA devices found" << std::endl;
     } else if (cuda_device_count > 0) {
         g_has_gpu = true;
+        g_use_gpu = true;
+        g_use_gpu_prev = true;
         std::cout << "CUDA device count: " << cuda_device_count << std::endl;
     } else {
         std::cout << "No CUDA devices found" << std::endl;
