@@ -430,6 +430,9 @@ void build_control_panel() {
 
         if (ImGui::Button("Reset Container", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
             std::cout << "Resetting container" << std::endl;
+#ifdef __APPLE__
+            g_psystem->respawn();
+#else
             if (g_has_gpu && g_use_gpu) {
                 cudaCopyDeviceToHost(g_psystem, g_gpu_psystem);
                 
@@ -442,6 +445,7 @@ void build_control_panel() {
                 g_psystem->respawn();
                 if (g_has_gpu) cudaReallocPsystem(g_psystem, g_gpu_psystem);
             }
+#endif
         }
         ImGui::Spacing();
     }
