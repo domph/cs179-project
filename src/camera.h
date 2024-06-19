@@ -1,5 +1,4 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#pragma once
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -26,5 +25,3 @@ private:
     double last_mouse_y;
     bool first_mouse;
 };
-
-#endif // CAMERA_H

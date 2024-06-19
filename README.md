@@ -1,14 +1,18 @@
 # CS 179 Final Project: Markus Lendermann & Dominic Phung
 
-This program is a GUI-based fluid dynamics simulator that provides the option of GPU acceleration if a compatible NVIDIA GPU is detected. OpenGL 4.1 is required to run this program.
+This program is a GUI-based fluid dynamics simulator that allows you to visualize, subject to fluid physics, a collection of particles in an invisible container. The GUI has a control panel where you can customize the simulation, like adding more particles (at specific locations and with specific speeds) or changing the particle size. On devices where a compatible NVIDIA GPU is detected, the program has a "Use GPU" toggle to switch between running the simulation on the CPU vs. GPU. The camera of the scene is modifiable, and the controls to do so are listed in the control panel.
+
+OpenGL 4.1 is required to run this program. 
 
 <img src="assets/demo.png" width="1000"/>
 
 ## Pre-built Binaries
 
-This folder contains the source code to compile and run the program. However, we include pre-built binaries for Windows (x64) and MacOS in the `bin` folder for convenience. These binaries have been tested on a variety of devices without any failure; should they for whatever reason not work, compiling from the source directly and running should work instead.
+This folder contains the source code to compile and run the program. However, we include pre-built binaries for Windows (x64) and macOS in the `bin` folder for convenience. These binaries have been tested on a variety of devices without any failure; should they for whatever reason not work, compiling from the source directly and running should work instead.
 
-To run the MacOS binary, you first have to make it executable via `chmod +x ./cs179-project-mac`. Then, follow these instructions to run it (since the app isn't registered with Apple): [https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac).
+To run the macOS binary, you first have to make it executable via `chmod +x ./cs179-project-mac`. Then, follow these instructions to run it (since the app isn't registered with Apple): [https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac). 
+
+For macOS, GPU acceleration is not supported since NVIDIA has long since deprecated the NVIDIA CUDA Toolkit for macOS (and indeed, no modern macOS device has an NVIDIA card).
 
 ## Required Toolchain
 
@@ -18,8 +22,7 @@ This project requires the following tools:
 - A C compiler**
 - A C++ compiler that supports C++17**
 - A build system (e.g., `make`)
-- NVIDIA CUDA Toolkit (version depends on the platform)
-
+- For non-macOS: NVIDIA CUDA Toolkit (version depends on the platform)
 Platform-specific instructions for setting up the required toolchain are provided below. 
 
 ** Only compilers supported by CUDA work (these are detailed below for each platform)
@@ -60,7 +63,7 @@ nmake
 This will generate an executable called `cs179-project.exe` inside the `build` folder.
 
 
-### MacOS -- WIP
+### macOS
 
 #### Tool Setup
 
@@ -70,7 +73,7 @@ Then, `cmake` can be installed via the command `brew install cmake`. At this poi
 
 #### Compile the program
 
-To compile the program on MacOS, run the following commands in the root directory:
+To compile the program on macOS, run the following commands in the root directory:
 
 ```
 mkdir build
@@ -80,3 +83,14 @@ make
 ```
 
 This will generate an executable called `cs179-project` inside the `build` folder.
+
+## Results / Performance Analysis
+
+On devices where GPU mode is available, we can observe the improvements of the GPU version via the frame rate (FPS) increase. 
+
+Here is one data point (with the system running under medium load):
+- CPU: Intel i7-10875H
+- GPU: NVIDIA GeForce RTX 2060 w/ Max-Q Design
+
+
+There are a couple things we could improve. 

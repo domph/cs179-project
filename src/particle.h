@@ -31,6 +31,11 @@ struct Box {
         partition_sizes = (size_t *) calloc(total_partitions, sizeof(size_t));
     }
 
+    ~Box() {
+        free(partitions);
+        free(partition_sizes);
+    }
+
     size_t part_idx(size_t x, size_t y, size_t z, size_t n) {
         return x * y_partitions * z_partitions * num_particles +
                                     y * z_partitions * num_particles + 
@@ -128,12 +133,25 @@ struct ParticleSystem {
         spawn_init();
     }
 
+    ~ParticleSystem() {
+        free(pos);
+        free(deltapos);
+        free(prevpos);
+        free(vel);
+        free(nextvel);
+        free(vorticity);
+        free(lambda);
+        free(neighbors);
+        free(num_neighbors);
+        delete box;
+    }
+
     void respawn() {
         // Recalculate num_particles
         num_particles = 0;
         PSYSTEM_INIT_SPAWN(num_particles++);
 
-        free(box);
+        delete box;
         box = new Box((size_t)XYBOUND, (size_t)ZBOUND, num_particles);
         
         t = 0;
@@ -157,9 +175,7 @@ struct ParticleSystem {
         neighbors     = (size_t *)   realloc(neighbors, num_particles * MAX_NEIGHBORS * sizeof(size_t));
         num_neighbors = (size_t *)   realloc(num_neighbors, num_particles * sizeof(size_t));
 
-        free(box->partitions);
-        free(box->partition_sizes);
-        free(box);
+        delete box;
         box = new Box((size_t)XYBOUND, (size_t)ZBOUND, num_particles);
 
         x += SHAKE(shake_t);

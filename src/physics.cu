@@ -5,6 +5,7 @@
 #include <glm/gtx/norm.hpp>
 #include <sstream>
 #include "helper_cuda.h"
+#include "timer.h"
 
 __device__ float cudaCalcWpoly6(glm::vec3 i, glm::vec3 j) {    
     float r2 = glm::distance2(i, j);
@@ -22,19 +23,42 @@ __device__ glm::vec3 cudaCalcWspiky(glm::vec3 i, glm::vec3 j) {
     }
 }
 
-void cudaApplyBodyForces(ParticleSystem *psystem) {
-    for (size_t i = 0; i < psystem->num_particles; i++) {
-        psystem->vel[i].z -= G * DT;
-        psystem->pos[i] = psystem->prevpos[i] + DT * psystem->vel[i];
+__global__ void cudaApplyBodyForces(size_t num_particles, glm::vec3 *vel,
+                                    glm::vec3 *pos, glm::vec3 *prevpos) {
+    size_t i = blockIdx.x * blockDim.x + threadIdx.x;
+    while (i < num_particles) {
+        vel[i].z -= G * DT;
+        pos[i] = prevpos[i] + DT * vel[i];
+
+        i += blockDim.x * gridDim.x;
     }
 }
 
-void cudaCalcPartition(ParticleSystem *psystem) {
-    Box *box = psystem->box;
-    box->clear_partitions();
+__global__ void cudaCalcPartition(size_t num_particles, size_t *partition_sizes,
+                                  size_t total_partitions, glm::vec3 *pos,
+                                  size_t x_partitions, size_t y_partitions,
+                                  size_t z_partitions, size_t *partitions) {
+    memset(partition_sizes, 0, total_partitions * sizeof(size_t));
 
-    for (size_t i = 0; i < psystem->num_particles; i++) {
-        box->add_particle(i, psystem->pos[i]);
+    // needs to be single-threaded to prevent races
+    if (blockIdx.x * blockDim.x + threadIdx.x == 0) {
+        for (size_t i = 0; i < num_particles; i++) {
+            int x = (int)((pos[i].x + EPS) / P_H);
+            int y = (int)((pos[i].y + EPS) / P_H);
+            int z = (int)((pos[i].z + EPS) / P_H);
+
+            if (x >= 0 && (size_t)x < x_partitions &&
+                y >= 0 && (size_t)y < y_partitions &&
+                z >= 0 && (size_t)z < z_partitions) {
+                size_t n = partition_sizes[x * y_partitions * z_partitions + y * z_partitions + z]++;
+                partitions[x * y_partitions * z_partitions * num_particles +
+                           y * z_partitions * num_particles + z * num_particles + n] = i;
+            } else {
+                printf("Warning: particle out of bounds!\n");
+                printf("loc:   x: %d, y: %d, z: %d\n", x, y, z);
+                printf("bound: x: [0, %zu], y: [0, %zu], z: [0, %zu]\n", x_partitions, y_partitions, z_partitions);
+            }
+        }
     }
 }
 
@@ -297,27 +321,24 @@ __global__ void cudaApplyVorticityCorrection(size_t num_particles, glm::vec3 *po
     }
 }
 
-void cudaUpdate(ParticleSystem *psystem, ParticleSystem *gpu_psystem, bool shake) {
-    // performed on CPU
-    cudaApplyBodyForces(psystem);
+void cudaUpdate(ParticleSystem *psystem, ParticleSystem *gpu_psystem, bool shake, bool copy_to_device, bool copy_to_host) {
+    if (copy_to_device) {
+        cudaCopyHostToDevice(psystem, gpu_psystem);
+    }
 
-    cudaMemcpy(gpu_psystem->pos,           psystem->pos,           psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
-    cudaMemcpy(gpu_psystem->deltapos,      psystem->deltapos,      psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
-    cudaMemcpy(gpu_psystem->prevpos,       psystem->prevpos,       psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
-    cudaMemcpy(gpu_psystem->vel,           psystem->vel,           psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
-    cudaMemcpy(gpu_psystem->nextvel,       psystem->nextvel,       psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
-    cudaMemcpy(gpu_psystem->vorticity,     psystem->vorticity,     psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
-    cudaMemcpy(gpu_psystem->lambda,        psystem->lambda,        psystem->num_particles * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(gpu_psystem->neighbors,     psystem->neighbors,     psystem->num_particles * MAX_NEIGHBORS * sizeof(size_t), cudaMemcpyHostToDevice);
-    cudaMemcpy(gpu_psystem->num_neighbors, psystem->num_neighbors, psystem->num_particles * sizeof(size_t), cudaMemcpyHostToDevice);
-
-    // performed on CPU to avoid race conditions
-    cudaCalcPartition(psystem);
-
-    cudaMemcpy(gpu_psystem->box->partitions, psystem->box->partitions,
-        psystem->box->total_partitions * psystem->num_particles * sizeof(size_t), cudaMemcpyHostToDevice);
-    cudaMemcpy(gpu_psystem->box->partition_sizes, psystem->box->partition_sizes,
-        psystem->box->total_partitions * sizeof(size_t), cudaMemcpyHostToDevice);
+    cudaApplyBodyForces<<<BLOCKS, THREADS_PER_BLOCK>>>(psystem->num_particles,
+                                                       gpu_psystem->vel,
+                                                       gpu_psystem->pos,
+                                                       gpu_psystem->prevpos);
+    
+    cudaCalcPartition<<<BLOCKS, THREADS_PER_BLOCK>>>(psystem->num_particles,
+                                                     gpu_psystem->box->partition_sizes,
+                                                     psystem->box->total_partitions,
+                                                     gpu_psystem->pos,
+                                                     psystem->box->x_partitions,
+                                                     psystem->box->y_partitions,
+                                                     psystem->box->z_partitions,
+                                                     gpu_psystem->box->partitions);
 
     cudaKNearestNeighbors<<<BLOCKS, THREADS_PER_BLOCK>>>(psystem->num_particles,
                                                          gpu_psystem->pos,
@@ -386,66 +407,31 @@ void cudaUpdate(ParticleSystem *psystem, ParticleSystem *gpu_psystem, bool shake
                                                    gpu_psystem->pos);
     
 
-    cudaMemcpy(psystem->pos,           gpu_psystem->pos,           psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
-    cudaMemcpy(psystem->deltapos,      gpu_psystem->deltapos,      psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
-    cudaMemcpy(psystem->prevpos,       gpu_psystem->prevpos,       psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
-    cudaMemcpy(psystem->vel,           gpu_psystem->vel,           psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
-    cudaMemcpy(psystem->nextvel,       gpu_psystem->nextvel,       psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
-    cudaMemcpy(psystem->vorticity,     gpu_psystem->vorticity,     psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
-    cudaMemcpy(psystem->lambda,        gpu_psystem->lambda,        psystem->num_particles * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(psystem->neighbors,     gpu_psystem->neighbors,     psystem->num_particles * MAX_NEIGHBORS * sizeof(size_t), cudaMemcpyDeviceToHost);
-    cudaMemcpy(psystem->num_neighbors, gpu_psystem->num_neighbors, psystem->num_particles * sizeof(size_t), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
 
+    if (copy_to_host) {
+        cudaCopyDeviceToHost(psystem, gpu_psystem);
+    } else {
+        cudaMemcpy(psystem->pos, gpu_psystem->pos, psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+        cudaMemcpy(psystem->vel, gpu_psystem->vel, psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+    }
 
     psystem->t += DT;
     if (shake) psystem->shake_t += DT;
 }
 
-
 void cudaMallocPsystem(ParticleSystem *psystem, ParticleSystem *gpu_psystem) {
-    glm::vec3 *pos;
-    CUDA_CALL(cudaMalloc(&pos, psystem->num_particles * sizeof(glm::vec3)));
-    gpu_psystem->pos = pos;
-
-    glm::vec3 *deltapos;
-    CUDA_CALL(cudaMalloc(&deltapos, psystem->num_particles * sizeof(glm::vec3)));
-    gpu_psystem->deltapos = deltapos;
-
-    glm::vec3 *prevpos;
-    CUDA_CALL(cudaMalloc(&prevpos, psystem->num_particles * sizeof(glm::vec3)));
-    gpu_psystem->prevpos = prevpos;
-
-    glm::vec3 *vel;
-    CUDA_CALL(cudaMalloc(&vel, psystem->num_particles * sizeof(glm::vec3)));
-    gpu_psystem->vel = vel;
-
-    glm::vec3 *nextvel;
-    CUDA_CALL(cudaMalloc(&nextvel, psystem->num_particles * sizeof(glm::vec3)));
-    gpu_psystem->nextvel = nextvel;
-
-    glm::vec3 *vorticity;
-    CUDA_CALL(cudaMalloc(&vorticity, psystem->num_particles * sizeof(glm::vec3)));
-    gpu_psystem->vorticity = vorticity;
-
-    float *lambda;
-    CUDA_CALL(cudaMalloc(&lambda, psystem->num_particles * sizeof(float)));
-    gpu_psystem->lambda = lambda;
-    
-    size_t *neighbors;
-    CUDA_CALL(cudaMalloc(&neighbors, psystem->num_particles * MAX_NEIGHBORS * sizeof(size_t)));
-    gpu_psystem->neighbors = neighbors;
-
-    size_t *num_neighbors;
-    CUDA_CALL(cudaMalloc(&num_neighbors, psystem->num_particles * sizeof(size_t)));
-    gpu_psystem->num_neighbors = num_neighbors;
-
-    size_t *partitions;
-    CUDA_CALL(cudaMalloc(&partitions, psystem->box->total_partitions * psystem->num_particles * sizeof(size_t)));
-    gpu_psystem->box->partitions = partitions;
-
-    size_t *partition_sizes;
-    CUDA_CALL(cudaMalloc(&partition_sizes, psystem->box->total_partitions * sizeof(size_t)));
-    gpu_psystem->box->partition_sizes = partition_sizes;
+    CUDA_CALL(cudaMalloc(&gpu_psystem->pos, psystem->num_particles * sizeof(glm::vec3)));
+    CUDA_CALL(cudaMalloc(&gpu_psystem->deltapos, psystem->num_particles * sizeof(glm::vec3)));
+    CUDA_CALL(cudaMalloc(&gpu_psystem->prevpos, psystem->num_particles * sizeof(glm::vec3)));
+    CUDA_CALL(cudaMalloc(&gpu_psystem->vel, psystem->num_particles * sizeof(glm::vec3)));
+    CUDA_CALL(cudaMalloc(&gpu_psystem->nextvel, psystem->num_particles * sizeof(glm::vec3)));
+    CUDA_CALL(cudaMalloc(&gpu_psystem->vorticity, psystem->num_particles * sizeof(glm::vec3)));
+    CUDA_CALL(cudaMalloc(&gpu_psystem->lambda, psystem->num_particles * sizeof(float)));
+    CUDA_CALL(cudaMalloc(&gpu_psystem->neighbors, psystem->num_particles * MAX_NEIGHBORS * sizeof(size_t)));
+    CUDA_CALL(cudaMalloc(&gpu_psystem->num_neighbors, psystem->num_particles * sizeof(size_t)));
+    CUDA_CALL(cudaMalloc(&gpu_psystem->box->partitions, psystem->box->total_partitions * psystem->num_particles * sizeof(size_t)));
+    CUDA_CALL(cudaMalloc(&gpu_psystem->box->partition_sizes, psystem->box->total_partitions * sizeof(size_t)));
 }
 
 void cudaReallocPsystem(ParticleSystem *psystem, ParticleSystem *gpu_psystem) {
@@ -462,4 +448,28 @@ void cudaReallocPsystem(ParticleSystem *psystem, ParticleSystem *gpu_psystem) {
     cudaFree(gpu_psystem->box->partition_sizes);
 
     cudaMallocPsystem(psystem, gpu_psystem);
+}
+
+void cudaCopyHostToDevice(ParticleSystem *psystem, ParticleSystem *gpu_psystem) {
+    cudaMemcpy(gpu_psystem->pos,           psystem->pos,           psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->deltapos,      psystem->deltapos,      psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->prevpos,       psystem->prevpos,       psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->vel,           psystem->vel,           psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->nextvel,       psystem->nextvel,       psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->vorticity,     psystem->vorticity,     psystem->num_particles * sizeof(glm::vec3), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->lambda,        psystem->lambda,        psystem->num_particles * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->neighbors,     psystem->neighbors,     psystem->num_particles * MAX_NEIGHBORS * sizeof(size_t), cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_psystem->num_neighbors, psystem->num_neighbors, psystem->num_particles * sizeof(size_t), cudaMemcpyHostToDevice);
+}
+
+void cudaCopyDeviceToHost(ParticleSystem *psystem, ParticleSystem *gpu_psystem) {
+    cudaMemcpy(psystem->pos,           gpu_psystem->pos,           psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(psystem->deltapos,      gpu_psystem->deltapos,      psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(psystem->prevpos,       gpu_psystem->prevpos,       psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);    
+    cudaMemcpy(psystem->vel,           gpu_psystem->vel,           psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(psystem->nextvel,       gpu_psystem->nextvel,       psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(psystem->vorticity,     gpu_psystem->vorticity,     psystem->num_particles * sizeof(glm::vec3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(psystem->lambda,        gpu_psystem->lambda,        psystem->num_particles * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(psystem->neighbors,     gpu_psystem->neighbors,     psystem->num_particles * MAX_NEIGHBORS * sizeof(size_t), cudaMemcpyDeviceToHost);
+    cudaMemcpy(psystem->num_neighbors, gpu_psystem->num_neighbors, psystem->num_particles * sizeof(size_t), cudaMemcpyDeviceToHost);
 }

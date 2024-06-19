@@ -30,6 +30,9 @@ set(SRC_LIST
     "src/physics.cpp"
     "src/camera.cpp"
     "src/buffer_manager.cpp"
+)
+
+set(CUDA_SRC_LIST
     "src/physics.cu"
 )
 
@@ -44,7 +47,11 @@ set(IMGUI_SRC_LIST
 )
 
 # Source files
-add_executable(${PROJECT_NAME} ${SRC_LIST})
+if (NOT APPLE)
+    add_executable(${PROJECT_NAME} ${SRC_LIST} ${CUDA_SRC_LIST})
+else()
+    add_executable(${PROJECT_NAME} ${SRC_LIST})
+endif()
 
 # Compiler flags for strict mode
 if (ENABLE_STRICT_MODE)
@@ -52,12 +59,15 @@ if (ENABLE_STRICT_MODE)
         target_compile_options(${PROJECT_NAME} PRIVATE
             $<$<COMPILE_LANGUAGE:CXX>:/W4 /WX>
             #$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/W4 -Xcompiler=/WX -dc -diag-suppress 20012>
-            $<$<COMPILE_LANGUAGE:CUDA>:-diag-suppress 20012> #-dc 
         )
     else()
         target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
     endif()
 endif()
+
+target_compile_options(${PROJECT_NAME} PRIVATE
+    $<$<COMPILE_LANGUAGE:CUDA>:-diag-suppress 20012>
+)
 
 # CUDA properties
 set_target_properties(${PROJECT_NAME}
