@@ -39,7 +39,7 @@ On Windows, `MSVC` is the only suppported compiler. The simplest way to set up t
 
 Visual Studio does not update the `PATH` environment variable globally. Thus, by default, commands cannot be run in the regular `Command prompt`; instead, commands need to be run from `x64 Native Tools Command Prompt for VS 2022`. This specialized command prompt updates the `PATH` environment for the session appropriately. It can be found by the Search feature of Windows or by navigating to the `Start Menu > Visual Studio 2022` folder.
 
-Finally, NVIDIA CUDA Toolkit 12.5 needs to be installed. The installed can be found here: [https://developer.nvidia.com/cuda-downloads](https://developer.nvidia.com/cuda-downloads).
+Finally, NVIDIA CUDA Toolkit 12.5 needs to be installed. The installer can be found here: [https://developer.nvidia.com/cuda-downloads](https://developer.nvidia.com/cuda-downloads).
 
 To verify that the setup is working, run the following commands in the `x64 Native Tools Command Prompt`:
 
