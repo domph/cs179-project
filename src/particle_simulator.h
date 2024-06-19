@@ -10,16 +10,16 @@
 #include "particle.h"
 #include "buffer_manager.h"
 
-struct ParticleData {
-    float pos[3];
-    float vel[3];
-};
+// struct ParticleData {
+//     float pos[3];
+//     float vel[3];
+// };
 
 /* Handles rendering of particles */
 class ParticleSimulator {
 private:
     size_t num_particles = 0;
-    ParticleData *buffer = nullptr;
+    float *buffer = nullptr;
     GLuint vao           = 0;
     GLuint vbo           = 0;
     GLsync sync_obj      = 0;
@@ -34,7 +34,7 @@ private:
 public:
     ParticleSimulator(int viewport_width, int viewport_height) : buffer_manager(viewport_width, viewport_height) {}
     ~ParticleSimulator();
-    GLuint render(ParticleSystem *system);
+    GLuint render(ParticleSystem *system, ParticleSystem *gpu_system, bool using_gpu);
     void update_viewport(int width, int height) {
         viewport_width = width;
         viewport_height = height;

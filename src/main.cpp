@@ -51,8 +51,7 @@ Timer g_timer;
 bool g_enable_camera = false;
 bool g_enable_physics = true;
 bool g_use_gpu = true;
-bool g_copy_to_device = true;
-bool g_copy_to_host = false;
+bool g_use_gpu_prev = true;
 bool g_has_gpu = false;
 bool g_shake = false;
 bool g_vsync = false;
@@ -431,9 +430,17 @@ void build_control_panel() {
 
         if (ImGui::Button("Reset Container", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
             std::cout << "Resetting container" << std::endl;
-            g_psystem->respawn();
-            g_copy_to_device = true;
-            g_copy_to_host = false;
+            if (g_use_gpu) {
+                cudaCopyDeviceToHost(g_psystem, g_gpu_psystem);
+
+                g_psystem->respawn();
+                cudaReallocPsystem(g_psystem, g_gpu_psystem);
+
+                cudaCopyHostToDevice(g_psystem, g_gpu_psystem);
+            } else {
+                g_psystem->respawn();
+                cudaReallocPsystem(g_psystem, g_gpu_psystem);
+            }
         }
         ImGui::Spacing();
     }
@@ -506,9 +513,7 @@ void build_control_panel() {
         ImGui::Spacing();
 
         if (ImGui::Button("Add Parcel", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-            // Scenarios under which the subsequent tick will still call cudaUpdate(),
-            // so we need to update the device memory
-            if (g_use_gpu || g_copy_to_host) {
+            if (g_use_gpu) {
                 cudaCopyDeviceToHost(g_psystem, g_gpu_psystem);
                 
                 g_psystem->spawn_parcel(pos_x, pos_y, pos_z, vel_z, r);
@@ -541,7 +546,7 @@ void build_scene() {
 
     // Render
     ImGui::Image(
-        (void*)(int64_t)g_particle_simulator->render(g_psystem),
+        (void*)(int64_t)g_particle_simulator->render(g_psystem, g_gpu_psystem, g_use_gpu),
         size,
         ImVec2(0, 1), 
         ImVec2(1, 0)
@@ -711,31 +716,6 @@ int main() {
         double dt = frame_timer.elapsed_s();
         frame_timer.reset();
         process_input(window, dt);
-
-        // Physics
-        if (g_enable_physics) {
-            if (g_has_gpu) {
-                if (g_use_gpu) {
-                    if (g_copy_to_device) {
-                        cudaUpdate(g_psystem, g_gpu_psystem, g_shake, true, false);
-                        g_copy_to_device = false;
-                        g_copy_to_host = true;
-                    } else {
-                        cudaUpdate(g_psystem, g_gpu_psystem, g_shake, false, false);
-                    }
-                } else {
-                    if (g_copy_to_host) {
-                        cudaUpdate(g_psystem, g_gpu_psystem, g_shake, false, true);
-                        g_copy_to_host = false;
-                        g_copy_to_device = true;
-                    } else {
-                        update(g_psystem, g_shake);
-                    }
-                }
-            } else {
-                update(g_psystem, g_shake);
-            }
-        }
         
         // Imgui
         ImGui_ImplOpenGL3_NewFrame();
@@ -743,6 +723,28 @@ int main() {
         ImGui::NewFrame();
         build_imgui_dock();
         build_control_panel();
+
+        // Physics
+        if (g_has_gpu) {
+            if (g_use_gpu) {
+                if (g_use_gpu_prev) {
+                    // update device memory if use_gpu was just enabled
+                    cudaCopyHostToDevice(g_psystem, g_gpu_psystem);
+                    g_use_gpu_prev = false;
+                }
+                if (g_enable_physics) cudaUpdate(g_psystem, g_gpu_psystem, g_shake);
+            } else {
+                if (!g_use_gpu_prev) {
+                    // update host memory if use_gpu was just disabled
+                    cudaCopyDeviceToHost(g_psystem, g_gpu_psystem);
+                    g_use_gpu_prev = true;
+                }
+                if (g_enable_physics) update(g_psystem, g_shake);
+            }
+        } else {
+            if (g_enable_physics) update(g_psystem, g_shake);
+        }
+        
         build_scene();
 
         ImGui::Render();
