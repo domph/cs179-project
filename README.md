@@ -4,7 +4,7 @@ This program is a GUI-based fluid dynamics simulator that allows you to visualiz
 
 OpenGL 4.1 is required to run this program. 
 
-Demo video:
+A demo video is provided in the `assets` folder. 
 <video src="assets/cs179-demo.mp4" width="1000" height="679" controls></video>
 
 ## Pre-built Binaries
