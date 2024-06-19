@@ -4,7 +4,8 @@ This program is a GUI-based fluid dynamics simulator that allows you to visualiz
 
 OpenGL 4.1 is required to run this program. 
 
-<img src="assets/demo.png" width="1000"/>
+Demo video:
+<video src="assets/cs179-demo.mp4" width="1000" height="679" controls></video>
 
 ## Pre-built Binaries
 
@@ -91,7 +92,14 @@ On devices where GPU mode is available, we can observe the improvements of the G
 Here is one data point (with the system running under medium load):
 - CPU: Intel i7-10875H
 - GPU: NVIDIA GeForce RTX 2060 w/ Max-Q Design
-
+    - Particles: 1500
+        - CPU FPS: ~30
+        - GPU FPS: ~300
+        - Speedup: ~10x
+    - Particles: 20000
+        - CPU FPS: ~2
+        - GPU FPS: ~60
+        - Speedup: ~30x
 
 There are a couple things we could improve.
 
@@ -99,14 +107,6 @@ There is space for further micro-optimizations in our physics CUDA kernels. For 
 `cudaApplyCollisionResponse()`, we could pre-calculate the value of `SHAKE(shake_t)` to avoid GPU
 threads from having to do repeated work.
 
-We took particular care in designing the memory layout of the various physics data arrays in GPU memory
-to ensure that we avoid memory bank conflicts. However, there is still significant warp divergence occuring
-due to the nature of the calculations being performed. Furthermore, we are not guaranteeing cache-alignment
-of the arrays (as the number of particles is not a multiple of the cache-line size); this is something that
-can potentially be ensured to further increase performance.
+We took particular care in designing the memory layout of the various physics data arrays in GPU memory to ensure that we avoid memory bank conflicts. However, there is still some warp divergence occuring due to the nature of the calculations being performed. Furthermore, we are not guaranteeing cache-alignment of the arrays (as the number of particles is not a multiple of the cache-line size); this is something that can potentially be ensured to further increase performance.
 
-Generally, though, we are ensuring the minimal possible amount of memory operations takes place when we
-perform physics calculations on the GPU - only the particle position and velocity states need to be continuously
-sent back to the host at the end of each frame calculation, while all other states "live" in GPU memory. The
-only time the host and device are fully re-synchronized is when the user toggles between using the GPU or the CPU
-for rendering.
+Generally, though, we are ensuring the minimal possible amount of memory operations takes place when we perform physics calculations on the GPU - only the particle position and velocity states need to be continuously sent back to the host at the end of each frame calculation, while all other states "live" in GPU memory. The only time the host and device are fully re-synchronized is when the user toggles between using the GPU or the CPU for rendering.
