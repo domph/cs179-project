@@ -415,9 +415,9 @@ void build_control_panel() {
 
     if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Checkbox("Physics", &g_enable_physics);
-        if (g_has_gpu) {
-            ImGui::Checkbox("Use GPU", &g_use_gpu);
-        }
+        ImGui::BeginDisabled(!g_has_gpu);
+        ImGui::Checkbox("Use GPU", &g_use_gpu);
+        ImGui::EndDisabled();
         
         ImGui::Checkbox("Shaking", &g_shake);
         
