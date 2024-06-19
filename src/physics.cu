@@ -38,27 +38,25 @@ __global__ void cudaCalcPartition(size_t num_particles, size_t *partition_sizes,
                                   size_t total_partitions, glm::vec3 *pos,
                                   size_t x_partitions, size_t y_partitions,
                                   size_t z_partitions, size_t *partitions) {
-    memset(partition_sizes, 0, total_partitions * sizeof(size_t));
+    size_t i = blockIdx.x * blockDim.x + threadIdx.x;
+    while (i < num_particles) {
+        int x = (int)((pos[i].x + EPS) / P_H);
+        int y = (int)((pos[i].y + EPS) / P_H);
+        int z = (int)((pos[i].z + EPS) / P_H);
 
-    // needs to be single-threaded to prevent races
-    if (blockIdx.x * blockDim.x + threadIdx.x == 0) {
-        for (size_t i = 0; i < num_particles; i++) {
-            int x = (int)((pos[i].x + EPS) / P_H);
-            int y = (int)((pos[i].y + EPS) / P_H);
-            int z = (int)((pos[i].z + EPS) / P_H);
-
-            if (x >= 0 && (size_t)x < x_partitions &&
-                y >= 0 && (size_t)y < y_partitions &&
-                z >= 0 && (size_t)z < z_partitions) {
-                size_t n = partition_sizes[x * y_partitions * z_partitions + y * z_partitions + z]++;
-                partitions[x * y_partitions * z_partitions * num_particles +
-                           y * z_partitions * num_particles + z * num_particles + n] = i;
-            } else {
-                printf("Warning: particle out of bounds!\n");
-                printf("loc:   x: %d, y: %d, z: %d\n", x, y, z);
-                printf("bound: x: [0, %zu], y: [0, %zu], z: [0, %zu]\n", x_partitions, y_partitions, z_partitions);
-            }
+        if (x >= 0 && (size_t)x < x_partitions &&
+            y >= 0 && (size_t)y < y_partitions &&
+            z >= 0 && (size_t)z < z_partitions) {
+            size_t n = atomicAdd(&partition_sizes[x * y_partitions * z_partitions + y * z_partitions + z], 1);
+            partitions[x * y_partitions * z_partitions * num_particles +
+                        y * z_partitions * num_particles + z * num_particles + n] = i;
+        } else {
+            printf("Warning: particle out of bounds!\n");
+            printf("loc:   x: %d, y: %d, z: %d\n", x, y, z);
+            printf("bound: x: [0, %zu], y: [0, %zu], z: [0, %zu]\n", x_partitions, y_partitions, z_partitions);
         }
+
+        i += blockDim.x * gridDim.x;
     }
 }
 
@@ -330,6 +328,8 @@ void cudaUpdate(ParticleSystem *psystem, ParticleSystem *gpu_psystem, bool shake
                                                        gpu_psystem->vel,
                                                        gpu_psystem->pos,
                                                        gpu_psystem->prevpos);
+
+    CUDA_CALL(cudaMemset(gpu_psystem->box->partition_sizes, 0, psystem->box->total_partitions * sizeof(size_t)));
     
     cudaCalcPartition<<<BLOCKS, THREADS_PER_BLOCK>>>(psystem->num_particles,
                                                      gpu_psystem->box->partition_sizes,
