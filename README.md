@@ -24,6 +24,7 @@ This project requires the following tools:
 - A C++ compiler that supports C++17**
 - A build system (e.g., `make`)
 - For non-macOS: NVIDIA CUDA Toolkit (version depends on the platform)
+
 Platform-specific instructions for setting up the required toolchain are provided below. 
 
 ** Only compilers supported by CUDA work (these are detailed below for each platform)
